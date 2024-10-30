@@ -1,0 +1,53 @@
+import math
+from matplotlib import pyplot as plt
+import pandas as pd
+
+csv = pd.read_csv("Output.csv")
+df = pd.DataFrame(csv)
+data = []
+columns = df.columns.values
+for i in range(0, len(columns)):
+    data.append([])
+    for e in range(0,len(df[columns[i]])):
+        data[i].append(df[columns[i]][e])
+#print(data)
+
+x_data = []
+y1_data = []
+y2_data = []
+k = []
+index = -1
+kprev = 0
+for i in range(0,len(data[0])-1):
+    if(data[1][i] != kprev):
+        x_data.append([])
+        y1_data.append([])
+        y2_data.append([])
+        k.append(data[1][i])
+        kprev = data[1][i]
+        index = index + 1
+    x_data[index].append(data[2][i])
+    y1_data[index].append(data[3][i])
+    y2_data[index].append(data[4][i])
+#print(k)
+
+subplot_row = int(math.floor(math.sqrt(len(k))))
+subplot_col = int(len(k) / subplot_row)
+
+figure, ax = plt.subplots(nrows = subplot_row, ncols = subplot_col)
+
+for i in range(0,len(k)):
+    #plt.xlabel("Mass(kg)")
+    #plt.ylabel("Frequency(Hz)")
+    index1 = int(math.floor(i/subplot_col))
+    index2 = i - (subplot_col * index1)
+    ax[index1][index2].set_title("k = " + str(k[i]))
+    ##ax[index1][index2].set_xlabel("Mass(kg)")
+    #ax[index1][index2].set_ylabel("Frequency(Hz)")
+    ax[index1][index2].plot(x_data[i],y1_data[i])
+    ax[index1][index2].plot(x_data[i], y2_data[i])
+
+figure.text(0.5, 0.04, 'Frequency(Hz)', ha='center', va='center')
+figure.text(0.06, 0.5, 'Mass(kg)', ha='center', va='center', rotation='vertical')
+plt.show()
+
