@@ -1,0 +1,19 @@
+Setup
+{
+	K = 1;
+	M = 1;
+};
+
+System
+{
+	MinK = 0.1;
+	MaxK = 2;
+	StepK = 0.1;
+
+	MinM = 0.1;
+	MaxM = 10;
+	StepM = 0.1;
+
+	SystemTolerance = 1e-6;
+	OutputFile = Output.csv;
+};
