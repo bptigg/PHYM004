@@ -25,26 +25,26 @@ bool FileHandeling::LoadFile()
 		{
 			if (std::find(SpecialChar.begin(), SpecialChar.end(), (*c)) == SpecialChar.end())
 			{
-				buffer += (*c);
+				buffer += (*c); //only adds a character to the buffer if it's not a special character 
 			}
 
 			if ((*c) == '{' || (*c) == '}')
 			{
-				buffer.clear();
+				buffer.clear(); //clears the buffer as  { or } indicates the start of a block in the setup file
 			}
 
 			if ((*c) == ';')
 			{
 				if (Variable == true)
 				{
-					m_Data.push_back({ v, buffer });
+					m_Data.push_back({ v, buffer }); //finds the value of the variable and uses the string on the lhs of the = sign as the variable name
 				}
 				buffer.clear();
 				v = "";
 				Variable = false;
 			}
 
-			if ((*c) == '=')
+			if ((*c) == '=') //indicates that this line contains a variable
 			{
 				v = buffer;
 				Variable = true;
@@ -60,9 +60,9 @@ bool FileHandeling::LoadFile()
 
 bool FileHandeling::WriteToFile(std::string out)
 {	
-	if (!this->m_Output.is_open())
+	if (!this->m_Output.is_open()) //checks wether the output file is open before writing to it
 	{
-		m_Output.open(this->m_Outpath);
+		m_Output.open(this->m_Outpath); 
 	}
 
 	m_Output << out;

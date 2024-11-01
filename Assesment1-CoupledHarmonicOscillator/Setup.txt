@@ -6,13 +6,13 @@ Setup
 
 System
 {
-	MinK = 1;
-	MaxK = 9;
+	MinK = 2;
+	MaxK = 2;
 	StepK = 1;
 
-	MinM = 0.01;
-	MaxM = 10;
-	StepM = 0.01;
+	MinM = 0.0001;
+	MaxM = 0.5;
+	StepM = 0.0001;
 
 	SystemTolerance = 1e-6;
 	OutputFile = Output.csv;

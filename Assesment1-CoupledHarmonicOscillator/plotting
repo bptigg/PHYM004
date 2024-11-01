@@ -36,6 +36,12 @@ subplot_col = int(len(k) / subplot_row)
 
 figure, ax = plt.subplots(nrows = subplot_row, ncols = subplot_col)
 
+if(subplot_row * subplot_col) == 1:
+    ax.set_title("k= " + str(k[0]))
+    ax.plot(x_data[0],y1_data[0])
+    ax.plot(x_data[0], y2_data[0])
+    k.clear()
+
 for i in range(0,len(k)):
     #plt.xlabel("Mass(kg)")
     #plt.ylabel("Frequency(Hz)")
@@ -47,7 +53,7 @@ for i in range(0,len(k)):
     ax[index1][index2].plot(x_data[i],y1_data[i])
     ax[index1][index2].plot(x_data[i], y2_data[i])
 
-figure.text(0.5, 0.04, 'Frequency(Hz)', ha='center', va='center')
-figure.text(0.06, 0.5, 'Mass(kg)', ha='center', va='center', rotation='vertical')
+figure.text(0.5, 0.04, 'Mass(kg)', ha='center', va='center')
+figure.text(0.06, 0.5, 'Frequency(Hz)', ha='center', va='center', rotation='vertical')
 plt.show()
 

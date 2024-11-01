@@ -1,3 +1,15 @@
+//FileHandling.h
+//The file handling object handles all the reading and writing to the input and output files
+//it stores both a ifstream and ofstream object that read and write to the files;
+
+//function definitions
+//FileHandeling: the constructor, takes the input filename as a input
+//setoutputfile : sets the output file
+//load file : reads the file and loads all in the data to m_Data
+//write to file : writes to the output file
+//closeoutputfile : closes the output file
+//getdata : returns the m_data vector;
+
 #pragma once
 
 #include <string>

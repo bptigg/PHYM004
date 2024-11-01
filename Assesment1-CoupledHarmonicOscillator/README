@@ -1,0 +1,16 @@
+COMPILE information
+-the code was compiled and tested using gcc 11.4.0 and the C++ 20 standard on linux
+-to compile the code the command make Assement1 should be used
+-to clean the binaries the command make clean should be used 
+
+setup.txt
+-the system can be modified in setup.txt
+-you can change the start and end mass and spring constant and change the step between them
+-you can change the name of the output file and the system tolerance
+
+plotting
+-plotting is handled by PLOTTING.py 
+-running the command python3 plotting in the command line should run the python file
+
+VISUAL STUDIO CODE
+-if using visual studio code there are two .json files that enable easier debugging and the ability to run the code by pressing fn+f5, this will also compile the code if any changes have been made

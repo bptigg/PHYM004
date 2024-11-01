@@ -22,7 +22,7 @@ const MatDataType* Matrix::operator[](int n)
 bool Matrix::AllocateMemory(uint32_t dim1, uint32_t dim2, MatDataType InitialValue, MatDataType*** DataPtr, bool ExternalPtr)
 {
 	MatDataType** TempPtr = nullptr;
-	TempPtr = (MatDataType**)calloc(dim1, sizeof(MatDataType*));
+	TempPtr = (MatDataType**)calloc(dim1, sizeof(MatDataType*)); //allocates enough memory to store an array of ptr's and sets all the values to nullptr
 
 	if (TempPtr == nullptr)
 	{
@@ -32,7 +32,7 @@ bool Matrix::AllocateMemory(uint32_t dim1, uint32_t dim2, MatDataType InitialVal
 
 	for (int i = 0; i < dim1; i++)
 	{
-		TempPtr[i] = (MatDataType*)calloc(dim2, sizeof(MatDataType));
+		TempPtr[i] = (MatDataType*)calloc(dim2, sizeof(MatDataType)); //allocates enough memory to store an array of valuss anf sets all the values to zero
 
 		if (TempPtr[i] == nullptr)
 		{
@@ -44,12 +44,12 @@ bool Matrix::AllocateMemory(uint32_t dim1, uint32_t dim2, MatDataType InitialVal
 		{
 			for (int e = 0; e < dim2; e++)
 			{
-				TempPtr[i][e] = InitialValue;
+				TempPtr[i][e] = InitialValue; //sets all the values to the provided initial value, unless that value is zero
 			}
 		}
 	}
 
-	if (ExternalPtr == false)
+	if (ExternalPtr == false) //assigned the memory to the right ptr, depending on if a external ptr was provided
 	{
 		m_Data = TempPtr;
 	}
