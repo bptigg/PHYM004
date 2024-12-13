@@ -3,7 +3,6 @@ import pandas as pd
 def main():
     filename = "test.txt"
     file = open(filename, "r")
-    lines = []
     param = []
 
     for i in range(0,2):
@@ -21,11 +20,20 @@ def main():
             if(value):
                 buffer += c
 
-            
-
     file.close()
     data = pd.read_csv(filename, sep = " ", skiprows=2)
     df = pd.DataFrame(data)
     print(df)
+    print(df.columns)
+
+    timesteps = []
+    ts = df.get("timestep(s)")
+    for i in range(0,ts.size):
+        timesteps.append(ts[i])
+    
+    print(timesteps)
+    
+
+
 
 main()
