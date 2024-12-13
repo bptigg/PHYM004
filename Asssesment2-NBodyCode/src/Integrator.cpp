@@ -5,11 +5,13 @@
 Integrator::Integrator(InitialConditions initial, ForceCalculation calc, double timestep, double maxtime, int id, std::shared_ptr<IntergatorLockGuard> LockGuard,std::shared_ptr<EnergyObserver>& obs )
     :m_SystemState(initial), m_PrevSystemState(initial), m_ForceFunction(calc), m_TimeStep(timestep), m_MaxTime(maxtime), m_LockGaurd(LockGuard),m_obs(obs), m_id(id)
 {
+    m_CurrentTime = 0;
 }
 
 Integrator::Integrator(double timestep, double maxtime, std::shared_ptr<IntergatorLockGuard> LockGaurd, int id)
     :m_TimeStep(timestep), m_MaxTime(maxtime), m_LockGaurd(LockGaurd), m_id(id)
 {
+    m_CurrentTime = 0;
 }
 
 void Integrator::DoStep()
@@ -32,7 +34,8 @@ void Integrator::DoStep()
     m_SystemState.acc = a;
     m_PrevSystemState = m_SystemState;
     m_BodyVec[m_id]->setVelocity(m_SystemState.vel);
-    m_obs->operator()({m_SystemState.pos,m_SystemState.vel},m_BodyVec[m_id]->GetMass(),m_TimeStep);
+    m_obs->operator()({m_SystemState.pos,m_SystemState.vel},m_BodyVec[m_id]->GetMass(),m_CurrentTime, m_id);
+    m_CurrentTime += m_TimeStep;
 
     //std::cout << m_id << "," << m_SystemState.pos.x << "," << m_SystemState.pos.y << "," << m_SystemState.pos.z << std::endl;
 }

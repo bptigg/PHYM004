@@ -18,3 +18,18 @@ public:
     bool Wait();
     void Reset();
 };
+
+class OutputLockGuard
+{
+private:
+    bool m_kill = false;
+    int m_WriteLimit = 0;
+
+    std::mutex OutputLock;
+public:
+    const bool& kill = m_kill;
+    const int& writeLimit = m_WriteLimit;
+public:
+    void UpdateKill(bool input);
+    void UpdateWriteLimit(int Limit);
+};

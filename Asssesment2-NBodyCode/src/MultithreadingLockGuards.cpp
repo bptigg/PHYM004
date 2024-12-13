@@ -27,3 +27,21 @@ void IntergatorLockGuard::Reset()
 {
     m_CurrentChecks = 0;
 }
+
+void OutputLockGuard::UpdateKill(bool input)
+{
+    OutputLock.lock();
+    m_kill = input;
+    OutputLock.unlock();
+}
+
+void OutputLockGuard::UpdateWriteLimit(int limit)
+{
+    OutputLock.lock();
+	if (limit < 0)
+	{
+		limit = 0;
+	}
+	m_WriteLimit = limit;
+	OutputLock.unlock();
+}

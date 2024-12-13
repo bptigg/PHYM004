@@ -28,6 +28,7 @@ private:
 
     double m_TimeStep;
     double m_MaxTime;
+    double m_CurrentTime;
 
     int m_id;
     

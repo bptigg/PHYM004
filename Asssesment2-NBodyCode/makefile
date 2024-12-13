@@ -3,13 +3,13 @@
 #----------------------------------------------
 #source code objects
 PATH_SRC = ./src
-OBJECTS_SRC = $(PATH_SRC)/Body.o $(PATH_SRC)/Integrator.o $(PATH_SRC)/MultithreadingLockGuards.o $(PATH_SRC)/Observer.o #$(PATH_SRC)/FileHandeling.o $(PATH_SRC)/Matrix.o
+OBJECTS_SRC = $(PATH_SRC)/Body.o $(PATH_SRC)/Integrator.o $(PATH_SRC)/MultithreadingLockGuards.o $(PATH_SRC)/Observer.o $(PATH_SRC)/FileReader.o
 #---------------------------------------------
 OBJECTS = NBodyCode.o $(OBJECTS_SRC)
 CC = g++ -std=c++20 #Compiler
 DEBUG = -g
-LFLAGS = -Wall -g #linker flags
-CFLAGS = -Wall -c -march=native -funroll-loops -fconcepts -g -fopenmp
+LFLAGS = -Wall -Wextra -g #linker flags
+CFLAGS = -Wall -Wextra -c -march=native -funroll-loops -fconcepts -g -fopenmp
 #---------------------------------------------
 #Compilation
 SEARCHDIR = -I$(PATH_SRC)

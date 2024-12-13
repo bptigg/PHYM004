@@ -1,8 +1,11 @@
 //Definition of the observer object, this object gets the infomation from the integrator 
 #pragma once
 #include "Body.h"
+#include "MultithreadingLockGuards.h"
 #include <mutex>
 #include <vector>
+#include <memory>
+#include <fstream>
 
 //class ObserverBase
 //{
@@ -22,30 +25,38 @@
 class EnergyObserver
 {
 private:
-    std::vector<Body::vec> m_positions;
-    std::vector<Body::vec> m_velocities;
-    std::vector<double> m_Masses;
+    std::vector<std::vector<Body::vec>> m_positions;
+    std::vector<std::vector<Body::vec>> m_velocities;
+    std::vector<std::vector<int>> m_Index;
+    std::vector<std::vector<double>> m_Masses;
     std::vector<double> m_Energy;
-    std::vector<double> m_AngularMomentum;
-    std::mutex m_OperatorMutex;
+    std::vector<Body::vec> m_AngularMomentum;
     std::vector<double> m_Timesteps;
     double m_bodies;
+    int m_NumTimesteps;
+    double m_Epsilon;
+    
+    std::mutex m_OperatorMutex;
+    std::shared_ptr<OutputLockGuard> m_OLG;
+    std::shared_ptr<std::ofstream> m_OutputFile; 
+    
 public:
-    void operator() (const std::pair<Body::vec&, Body::vec&> rv, double mass, double t); //summation so order doesn't really matter 
+    void operator() (const std::pair<Body::vec&, Body::vec&> rv, double mass, double t, int id); //summation so order doesn't really matter 
     void CalculateEnergy();
     void CalculateAngularMomentum();
     bool Reset();
+    void Pop();
 
-    EnergyObserver(int);
-};
+    EnergyObserver(int, int);
+    ~EnergyObserver();
 
-class TrajactoryObserver
-{
+    void AtttachLockGuard(std::shared_ptr<OutputLockGuard> olg);
+    void AttachOutputFile(std::string OutputFile);
+    inline void SetEpsilon(double e) { m_Epsilon = e;}
+    void WriteToFile();
+
 private:
-    std::vector<Body::vec> m_Positions;
-    std::mutex m_OperatorMutex;
-    std::vector<double> m_Timesteps;
-public:
-    void operator() (const Body::vec& r, const int id, double t); // order does matter because this is printing the results 
-    bool Reset();
+    void WriteHeader();
+    void Calculate();
 };
+

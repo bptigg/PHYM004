@@ -1,5 +1,6 @@
 //Definition of the Body object
 #pragma once
+#include <iostream>
 class Body
 {
 public:
@@ -14,6 +15,8 @@ public:
         vec operator*(vec vec2); //not the cross product but element multiplication
         vec operator*(double f);
         vec operator+=(vec vec2);
+
+        friend std::ostream& operator<<(std::ostream& os, vec& v);
 
         double magnitude();
         vec CrossProduct(vec vec2);

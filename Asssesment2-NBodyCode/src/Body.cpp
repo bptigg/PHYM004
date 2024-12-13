@@ -60,6 +60,12 @@ Body::vec Body::vec::CrossProduct(vec vec2)
     return result;
 }
 
+std::ostream& operator<<(std::ostream& os, Body::vec &v)
+{
+    os << v.magnitude() << " " << v.x << " " << v.y << " " << v.z;
+    return os;
+}
+
 Body::vec operator*(double f, Body::vec vec1)
 {
     return vec1 * f;
