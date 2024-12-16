@@ -24,8 +24,8 @@ void Integrator::DoStep()
     m_BodyVec[m_id]->SetGlobalPositon(m_SystemState.pos);
 
     //std::cout << "step 1 done " << m_id << std::endl;
-    m_LockGaurd->UpdateCurrentChecks();
-    while (!m_LockGaurd->Wait()) {std::this_thread::sleep_for(std::chrono::microseconds(10)); continue;}
+    m_LockGaurd->UpdateCurrentChecks(); //barrier to stop the thread progressing through the code if not all threads have reached this point 
+    while (!m_LockGaurd->Wait()) {std::this_thread::sleep_for(std::chrono::microseconds(10)); continue;} //sends the thread to sleep so it's not constantly hitting the cpu 
     //std::cout << "step 2 done " << m_id << std::endl;
     
     a = m_ForceFunction(m_id, m_BodyVec);

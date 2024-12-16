@@ -2,7 +2,7 @@
 
 #include <math.h>
 
-Body::vec Body::vec::operator+(vec pos2)
+Body::vec Body::vec::operator+(vec pos2) //adds two vectors 
 {
     Body::vec ReturnBody;
     ReturnBody.x = this->x + pos2.x;
@@ -11,7 +11,7 @@ Body::vec Body::vec::operator+(vec pos2)
     return ReturnBody;
 }
 
-Body::vec Body::vec::operator-(vec vec2)
+Body::vec Body::vec::operator-(vec vec2) //subtracs two vectors
 {
     Body::vec ReturnBody;
     ReturnBody.x = this->x - vec2.x;
@@ -20,7 +20,7 @@ Body::vec Body::vec::operator-(vec vec2)
     return ReturnBody;
 }
 
-Body::vec Body::vec::operator*(vec vec2)
+Body::vec Body::vec::operator*(vec vec2) //element wise multiplication of two vectors 
 {
     Body::vec ReturnBody;
     ReturnBody.x = this->x * vec2.x;
@@ -29,7 +29,7 @@ Body::vec Body::vec::operator*(vec vec2)
     return ReturnBody;
 }
 
-Body::vec Body::vec::operator*(double f)
+Body::vec Body::vec::operator*(double f) //element wise multiplication of a vector with a scaler 
 {
     Body::vec ReturnBody;
     ReturnBody.x = this->x * f;
@@ -38,7 +38,7 @@ Body::vec Body::vec::operator*(double f)
     return ReturnBody;
 }
 
-Body::vec Body::vec::operator+=(vec vec2)
+Body::vec Body::vec::operator+=(vec vec2) //adding to the current vector
 {
     this->x += vec2.x;
     this->y += vec2.y;
@@ -60,13 +60,13 @@ Body::vec Body::vec::CrossProduct(vec vec2)
     return result;
 }
 
-std::ostream& operator<<(std::ostream& os, Body::vec &v)
+std::ostream& operator<<(std::ostream& os, Body::vec &v) //printing vectors, usefull for when printing to a file 
 {
     os << v.magnitude() << " " << v.x << " " << v.y << " " << v.z;
     return os;
 }
 
-Body::vec operator*(double f, Body::vec vec1)
+Body::vec operator*(double f, Body::vec vec1) //calls the element wise multiplication 
 {
     return vec1 * f;
 }

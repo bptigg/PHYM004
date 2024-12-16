@@ -1,0 +1,29 @@
+Body body1
+{
+    InitialPosition = "-1e3 0.0 0.0";
+    InitialVelocity = "0.405916 0.230163 0.0";
+    Mass = 1e14;
+}
+
+Body body2
+{
+    InitialPosition = "1e3 0.0 0.0";
+    InitialVelocity = "0.405916 0.230163 0.0";
+    Mass = 1e14;
+}
+
+Body body3
+{
+    InitialPosition = "0.0 0.0 0.0";
+    InitialVelocity = "-0.811832 -0.460326 0.0";
+    mass = 1e14;
+}
+
+Setup
+{
+    Timestep = 0.01;
+    Steps = 200000;
+    Epsilon = 0.1;
+    OutputFile = "Butterfly3result2.txt";
+}
+

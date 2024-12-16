@@ -1,0 +1,22 @@
+Body body1
+{
+    InitialPosition = "0.0 1.471e11 0.0";
+    InitialVelocity = "30290.0 0.0 0.0";
+    Mass = 5.9722e24;
+}
+
+Body body2
+{
+    InitialPosition = "0.0 0.0 0.0";
+    InitialVelocity = "0.0 0.0 0.0";
+    Mass = 1.9891e30;
+}
+
+Setup
+{
+    Timestep = 3600;
+    Steps = 87660;
+    Epsilon = 0.001;
+    OutputFile = "EarthSunResults2.txt";
+}
+

@@ -9,7 +9,7 @@
 class Integrator
 {
 public:
-    typedef Body::vec(*ForceCalculation)(int, std::vector<std::shared_ptr<Body>>);
+    typedef Body::vec(*ForceCalculation)(int, std::vector<std::shared_ptr<Body>>); //function ptr for the force calculation 
 
     struct InitialConditions
     {
@@ -33,8 +33,8 @@ private:
     int m_id;
     
 public:
-    Integrator(InitialConditions, ForceCalculation, double, double, int, std::shared_ptr<IntergatorLockGuard>, std::shared_ptr<EnergyObserver>& obs);
+    Integrator(InitialConditions, ForceCalculation, double, double, int, std::shared_ptr<IntergatorLockGuard>, std::shared_ptr<EnergyObserver>& obs); //main constructor
     Integrator(double, double, std::shared_ptr<IntergatorLockGuard>, int); //basic constructor for testing 
-    void DoStep();
+    void DoStep(); 
     void SetBodyVec(std::vector<std::shared_ptr<Body>>);
 };

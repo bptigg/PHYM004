@@ -6,6 +6,10 @@
 #define G 6.67430e-11
 static double s_Epsilon = 0.0;
 
+//This is file is the contains the main loop of the code found in the main function on line 111, it tells the integrators to do one more step and updates the write limit for the observor
+//the two work functions are functions passed to other threads but  with objects attatched to them rather than just passing the function ptr's 
+//Force calculation calculates the force on each body using the direct evauluation method
+
 void work(Integrator& ig)
 {
     ig.DoStep();
@@ -28,7 +32,7 @@ Body::vec ForceCalculation(int CurrentBody, std::vector<std::shared_ptr<Body>> B
         Body::vec rVec = {b2Vec.x - b1Vec.x, b2Vec.y - b1Vec.y, b2Vec.z - b1Vec.z};
         double r = std::sqrt(std::pow(rVec.x,2) + std::pow(rVec.y,2) + std::pow(rVec.z,2));
 
-        double force = G * ((b1->GetMass() * b2->GetMass()) / (std::pow(r,3) + epsilon));
+        double force = G * ((b1->GetMass() * b2->GetMass()) / std::sqrt(std::pow(r,6) + std::pow(epsilon,2)));
         
         Body::vec ForceVector = force * rVec;
         return ForceVector;
@@ -94,7 +98,7 @@ int main(int argc, char* argv[])
     //IntegratorVec[1].SetBodyVec(BVec);
 
     EOb->AtttachLockGuard(OLG);
-    EOb->AttachOutputFile("test.txt");
+    EOb->AttachOutputFile(Sdat.OutputFile);
     s_Epsilon = Sdat.epsilon;
     EOb->SetEpsilon(s_Epsilon);
 

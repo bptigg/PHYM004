@@ -1,0 +1,29 @@
+Body body1
+{
+    InitialPosition = "0.0 1.471e11 0.0";
+    InitialVelocity = "30290.0 0.0 0.0";
+    Mass = 5.9722e24;
+}
+
+Body body2
+{
+    InitialPosition = "0.0 0.0 0.0";
+    InitialVelocity = "0.0 0.0 0.0";
+    Mass = 1.9891e30;
+}
+
+Body body3
+{
+    InitialPosition = "0.0 1.47485e11 0.0";
+    InitialVelocity = "0.0 1022.0 0.0";
+    Mass = 7.347e22;
+}
+
+Setup
+{
+    Timestep = 60;
+    Steps = 518400;
+    Epsilon = 0.001;
+    OutputFile = "EarthSunMoonResults.txt";
+}
+

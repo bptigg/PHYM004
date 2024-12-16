@@ -11,7 +11,7 @@ bool FileReader::LoadFile(std::string& filename)
         std::cout << "File: " << filename << " doesn't exist, exiting program" << std::endl;
     }
 
-    enum class Object {
+    enum class Object { //lets the file reader work as a state machine 
         Body = 0,
         Setup,
         Default

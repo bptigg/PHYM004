@@ -1,0 +1,3 @@
+Number_of_bodies:2
+Number_of_steps:1000000
+step timestep(s) energy angular_momentum_magnitude L_x L_y L_z body0_radius body0.x body0.y body0.z body1_radius body1.x body1.y body1.z

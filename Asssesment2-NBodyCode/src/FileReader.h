@@ -1,4 +1,4 @@
-//definition of the filereader object, this reads the setup file#
+//definition of the filereader object, this reads the setup file
 #pragma once
 #include <vector>
 #include <string>

@@ -13,23 +13,23 @@ public:
     const int& RequiredChecks = m_RequiredChecks;
     const int& CurrentChecks = m_CurrentChecks;
 public:
-    IntergatorLockGuard(int);
+    IntergatorLockGuard(int); //constructor 
     void UpdateCurrentChecks();
-    bool Wait();
-    void Reset();
+    bool Wait(); //the barrier function
+    void Reset(); //resets the barrier 
 };
 
 class OutputLockGuard
 {
 private:
-    bool m_kill = false;
-    int m_WriteLimit = 0;
+    bool m_kill = false; //if this is set to true the thread that this has been assigned to will be killed 
+    int m_WriteLimit = 0; //sets a limit for how far in a array the thread can go through
 
     std::mutex OutputLock;
 public:
-    const bool& kill = m_kill;
+    const bool& kill = m_kill; //const public read only variables
     const int& writeLimit = m_WriteLimit;
 public:
-    void UpdateKill(bool input);
+    void UpdateKill(bool input); //setting functions 
     void UpdateWriteLimit(int Limit);
 };

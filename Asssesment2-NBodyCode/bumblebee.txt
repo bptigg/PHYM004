@@ -1,0 +1,29 @@
+Body body1
+{
+    InitialPosition = "-1e3 0.0 0.0";
+    InitialVelocity = "0.184279 0.587188 0.0";
+    Mass = 1e14;
+}
+
+Body body2
+{
+    InitialPosition = "1e3 0.0 0.0";
+    InitialVelocity = "0.184279 0.587188 0.0";
+    Mass = 1e14;
+}
+
+Body body3
+{
+    InitialPosition = "0.0 0.0 0.0";
+    InitialVelocity = "-0.368558 -1.174376 0.0";
+    mass = 1e14;
+}
+
+Setup
+{
+    Timestep = 0.01;
+    Steps = 60000;
+    Epsilon = 0.5;
+    OutputFile = "bumblebeeresults2.txt";
+}
+

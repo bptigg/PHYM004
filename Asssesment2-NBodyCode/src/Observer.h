@@ -35,6 +35,7 @@ private:
     double m_bodies;
     int m_NumTimesteps;
     double m_Epsilon;
+    int m_loop = 0;
     
     std::mutex m_OperatorMutex;
     std::shared_ptr<OutputLockGuard> m_OLG;
