@@ -8,8 +8,8 @@ OBJECTS_SRC = $(PATH_SRC)/Body.o $(PATH_SRC)/Integrator.o $(PATH_SRC)/Multithrea
 OBJECTS = NBodyCode.o $(OBJECTS_SRC)
 CC = g++ -std=c++20 #Compiler
 DEBUG = -g
-LFLAGS = -Wall -Wextra -g #linker flags
-CFLAGS = -Wall -Wextra -c -march=native -funroll-loops -fconcepts -g -fopenmp
+LFLAGS = -Wall -Wextra -g -o3#linker flags
+CFLAGS = -Wall -Wextra -c -march=native -funroll-loops -fconcepts -g -fopenmp -o3
 #---------------------------------------------
 #Compilation
 SEARCHDIR = -I$(PATH_SRC)

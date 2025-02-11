@@ -32,7 +32,8 @@ Body::vec ForceCalculation(int CurrentBody, std::vector<std::shared_ptr<Body>> B
         Body::vec rVec = {b2Vec.x - b1Vec.x, b2Vec.y - b1Vec.y, b2Vec.z - b1Vec.z};
         double r = std::sqrt(std::pow(rVec.x,2) + std::pow(rVec.y,2) + std::pow(rVec.z,2));
 
-        double force = G * ((b1->GetMass() * b2->GetMass()) / std::sqrt(std::pow(r,6) + std::pow(epsilon,2)));
+        //double force = G * ((b1->GetMass() * b2->GetMass()) / std::sqrt(std::pow(r,6) + std::pow(epsilon,2)));
+        double force = G * ((b1->GetMass() * b2->GetMass()) / (std::pow(r,3) + epsilon));
         
         Body::vec ForceVector = force * rVec;
         return ForceVector;

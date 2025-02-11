@@ -22,7 +22,7 @@ Body body3
 Setup
 {
     Timestep = 0.01;
-    Steps = 200000;
+    Steps = 100000
     Epsilon = 0.1;
     OutputFile = "Butterfly3result2.txt";
 }

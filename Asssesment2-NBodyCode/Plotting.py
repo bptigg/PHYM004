@@ -5,8 +5,8 @@ import math
 
 def main():
     #filename = "yingyangresult.txt"
-    #filename = "Butterfly3result2.txt"
-    filename = "EarthSunMoonResults.txt"
+    filename = "Butterfly3result2.txt"
+    #filename = "EarthSunResults.txt"
     file = open(filename, "r")
     param = []
 
