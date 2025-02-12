@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include "MultithreadingLockGuards.h"
+#include "particle.h"
 
 //using ButcherTable = std::vector<std::pair<double, std::vector<double>>>;
 //typedef double(*RungeKuttaFunction)(double, double, double&);
@@ -27,8 +28,12 @@ private:
     EvaluationFunction m_EnergyEvaluation;
 
     int m_ParticleID;
+    std::shared_ptr<Particle> m_Particle;
+    double m_TempV;
+
 public:
-    bool DoStep(bool UpdatePositions = true);
+    void DoStep(bool UpdatePositions = true);
+    void EnergyEvaluation();
 };
 
 #endif

@@ -4,8 +4,10 @@
 #define SPH_PARTICLE
 
 #include <vector>
+#include <tuple>
 
 typedef std::pair<double, double> Kernal;
+
 
 class Particle
 {
@@ -50,6 +52,17 @@ public:
 
     inline const std::vector<Kernal>& GetKernal() { return m_KernalFunctionPerParticle; };
     inline void ClearKernal() { return m_KernalFunctionPerParticle.clear(); };
+
+    inline void UpdateEnergy(float Energy) { m_Energy.push_back(Energy); };
+
+    std::tuple<double, double, double> GetInitialConditions() {
+        std::tuple<double, double, double> ReturnValues = {
+            GetV(),
+            GetA(),
+            GetX()
+        };
+        return ReturnValues;
+    }
 
 };
 

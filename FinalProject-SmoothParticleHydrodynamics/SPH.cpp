@@ -56,7 +56,22 @@ void EnergyEvaluation(int a)
 {
     //In 1D
     //Pressure/Density * sum(mass of b * (velocity of a - velocity of b) * (kernal vector / magnitude of kernal)
-    //auto Targ
+    auto TargetParticle = s_AllParticles[a];
+    auto Kernal = TargetParticle->GetKernal();
+    auto Pressure = TargetParticle->GetP();
+    auto Density = TargetParticle->GetRho();
+    auto VelocityA = TargetParticle->GetV();
+    double Energy = 0.0;
+    for(int b = 0; b < s_AllParticles.size(); b++)
+    {
+        double Mass = s_AllParticles[b]->GetMass();
+        double VelocityB = s_AllParticles[b]->GetV();
+        double EAB = Mass * (VelocityA - VelocityB) * (Kernal[b].first / std::abs(Kernal[b].first)) * (1 - DiracDelta(a,b));
+        Energy += EAB;
+    }
+
+    TargetParticle->UpdateEnergy(Energy);
+
 }
 
 void AccelerationEvaluation(int a)
@@ -73,7 +88,7 @@ void AccelerationEvaluation(int a)
     {
         double Mass = s_AllParticles[b]->GetMass();
         double ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
-        double AccAB = Mass * (ValA + ValB) * Kernal[b].second * (Kernal[b].first / std::abs(Kernal[b].first)) * (DiracDelta(a,a) - DiracDelta(a,b));
+        double AccAB = Mass * (ValA + ValB) * Kernal[b].second * (Kernal[b].first / std::abs(Kernal[b].first)) * (1 - DiracDelta(a,b));
         acceleration += AccAB;
     }
 
