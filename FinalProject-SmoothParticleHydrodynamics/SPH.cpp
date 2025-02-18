@@ -2,6 +2,7 @@
 
 #include "Integrator.h"
 #include "particle.h"
+#include "ThreadPool.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -19,7 +20,7 @@ void KernalFunction(double q, double h, double& ReturnValue, double& derivative)
     if(q <= 1)
     {
         ReturnValue = 1 - (3.0/2.0 * std::pow(q,2)) + (3.0/4.0 * std::pow(q,4));
-        derivative =  -3.0 * q + 3.0*std::pow(q,3);
+        derivative =  -1 * (3.0 * q + 3.0*std::pow(q,3));
     }
     else if(q <= 2)
     {
@@ -33,7 +34,7 @@ void KernalFunction(double q, double h, double& ReturnValue, double& derivative)
     }
 
     ReturnValue = ReturnValue * (1.0/h);
-    derivative = derivative * (1.0/std::pow(h,2)); 
+    derivative = derivative * (-1.0/std::pow(h,2)); 
 }
 
 void KernalEvaulation(int a)
@@ -70,8 +71,17 @@ void EnergyEvaluation(int a)
         Energy += EAB;
     }
 
-    TargetParticle->UpdateEnergy(Energy);
+    //TargetParticle->UpdateThermalEnergy(Energy);
+    TargetParticle->TemporyInternalEnergyGradient = Energy;
+}
 
+void KineticEvaluation(int a)
+{
+    auto TargetParticle = s_AllParticles[a];
+    double Velocity = TargetParticle->GetV();
+    double Mass = TargetParticle->GetMass();
+    double KE = 0.5 * Mass * std::pow(Velocity,2);
+    TargetParticle->UpdateKineticEnergy(KE);
 }
 
 void AccelerationEvaluation(int a)
@@ -92,7 +102,7 @@ void AccelerationEvaluation(int a)
         acceleration += AccAB;
     }
 
-    TargetParticle->UpdateA(acceleration);
+    TargetParticle->UpdateA(-1.0 * acceleration);
 }
 
 void DensityEvauluation(int a)
@@ -110,8 +120,24 @@ void DensityEvauluation(int a)
     TargetParticle->UpdateRho(density);
 }
 
+void PressureEvaulation(int a)
+{
+    //Pressure = rho * internal energy
+    auto TargetParticle = s_AllParticles[a];
+    double density = TargetParticle->GetRho();
+    auto[KineticEnergy, ThermalEnergy] = TargetParticle->GetRecentEnergy();
+    double Pressure = density * ThermalEnergy;
+    TargetParticle->UpdateP(Pressure);
+}
+
 int main()
 {
     std::cin.get();
+
+
+    ThreadPool Pool(16);
+    //Pool.QueueJob(std::bind(VelocityVerlet::DoStep, true, std::placeholders::_1), 0);
+
+
     return 0;
 }

@@ -23,7 +23,9 @@ private:
 
     //std::vector<double> m_KernalFunctionPerParticle;
     std::vector<Kernal> m_KernalFunctionPerParticle;
-    std::vector<float> m_Energy;
+    
+    std::vector<float> m_KineticEnergy;
+    std::vector<float> m_ThermalEnergy;
 public:
     inline void UpdateX(float NewXCoord) { m_xCoord = NewXCoord; };
     inline float GetX() { return m_xCoord; };
@@ -53,7 +55,9 @@ public:
     inline const std::vector<Kernal>& GetKernal() { return m_KernalFunctionPerParticle; };
     inline void ClearKernal() { return m_KernalFunctionPerParticle.clear(); };
 
-    inline void UpdateEnergy(float Energy) { m_Energy.push_back(Energy); };
+    inline void UpdateKineticEnergy(float Energy) { m_KineticEnergy.push_back(Energy); };
+    inline void UpdateThermalEnergy(float Energy) { m_ThermalEnergy.push_back(Energy); };
+
 
     std::tuple<double, double, double> GetInitialConditions() {
         std::tuple<double, double, double> ReturnValues = {
@@ -63,6 +67,17 @@ public:
         };
         return ReturnValues;
     }
+
+    std::tuple<double, double> GetRecentEnergy() {
+        std::tuple<double, double> ReturnValues = {
+            m_KineticEnergy.back(),
+            m_ThermalEnergy.back()
+        };
+        return ReturnValues;
+    }
+
+public:
+    double TemporyInternalEnergyGradient = 0.0;
 
 };
 

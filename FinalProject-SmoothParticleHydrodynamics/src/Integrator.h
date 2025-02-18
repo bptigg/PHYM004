@@ -24,8 +24,10 @@ private:
 
     EvaluationFunction m_KernalEvaluation;
     EvaluationFunction m_DensityEvaluation;
+    EvaluationFunction m_PressureEvaluation;
     EvaluationFunction m_AccelerationEvaluation;
-    EvaluationFunction m_EnergyEvaluation;
+    EvaluationFunction m_ThermalEvaluation;
+    EvaluationFunction m_KineticEvaluation;
 
     int m_ParticleID;
     std::shared_ptr<Particle> m_Particle;

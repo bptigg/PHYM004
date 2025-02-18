@@ -9,7 +9,7 @@ void ThreadPool::start()
 	Terminate = false;
 }
 
-void ThreadPool::QueueJob(std::function<void()> job, int id)
+void ThreadPool::QueueJob(std::function<void(int)> job, int id)
 {
 	{
 		std::unique_lock<std::mutex> lock(m_Queue);
@@ -50,7 +50,7 @@ void ThreadPool::ThreadLoop()
 {
 	while (true)
 	{
-		std::pair<std::function<void()>, int> job;
+		std::pair<std::function<void(int)>, int> job;
 		{
 			std::unique_lock<std::mutex> lock(m_Queue);
 			m_MutexCondition.wait(lock, [this] {
@@ -62,6 +62,6 @@ void ThreadPool::ThreadLoop()
 			job = jobs.front();
 			jobs.pop();
 		}
-		job.first();
+		job.first(job.second);
 	}
 }

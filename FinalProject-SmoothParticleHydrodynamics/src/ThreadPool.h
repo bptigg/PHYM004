@@ -13,7 +13,7 @@ class ThreadPool
 {
 public:
 	void start();
-	void QueueJob(std::function<void()> job, int id);
+	void QueueJob(std::function<void(int)> job, int id);
 	void Stop();
 	bool Busy();
 
@@ -25,7 +25,7 @@ private:
 	std::mutex m_Queue;
 	std::condition_variable m_MutexCondition;
 	std::vector<std::thread> m_threads;
-	std::queue<std::pair<std::function<void()>, int>> jobs;
+	std::queue<std::pair<std::function<void(int)>, int>> jobs;
 
 	int m_MaxThreads;
 

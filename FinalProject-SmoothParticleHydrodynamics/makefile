@@ -3,13 +3,15 @@
 #----------------------------------------------
 #source code objects
 PATH_SRC = ./src
-OBJECTS_SRC = $(PATH_SRC)/particle.o $(PATH_SRC)/Integrator.o $(PATH_SRC)/MultithreadingLockGuards.o #$(PATH_SRC)/Observer.o $(PATH_SRC)/FileReader.o
+OBJECTS_SRC = $(PATH_SRC)/Integrator.o $(PATH_SRC)/MultithreadingLockGuards.o $(PATH_SRC)/ThreadPool.o $(PATH_SRC)/FileReader.o #$(PATH_SRC)/Observer.o 
 #---------------------------------------------
-OBJECTS = NBodyCode.o $(OBJECTS_SRC)
+OBJECTS = SPH.o $(OBJECTS_SRC)
 CC = g++ -std=c++20 #Compiler
 DEBUG = -g
 LFLAGS = -Wall -Wextra -g #-o3#linker flags
 CFLAGS = -Wall -Wextra -c -march=native -funroll-loops -fconcepts -g -fopenmp #-o3
+LFLAGSrelease = $(LFLAGS) -o3
+CFLAGSrelease = $(CFLAGS) -o3
 #---------------------------------------------
 #Compilation
 SEARCHDIR = -I$(PATH_SRC)
@@ -20,6 +22,13 @@ SPH.o: SPH.cpp
 	$(CC) $(CFLAGS) $(SEARCHDIR) SPH.cpp -o SPH.o
 %.o: %.cpp %.h
 	$(CC) $(CFLAGS) $(SEARCHDIR) $< -o $@
+
+SPH-release: $(OBJECTS)
+	$(CC) $(LFLAGSrelease) $^ $(SEARCHDIR) -o $@
+
+SPH-release.o: SPH.cpp
+	$(CC) $(CFLAGSrelease) $(SEARCHDIR) SPH.cpp -o SPH.o
+
 #Clean binaries for clean recompilation
 .PHONY: clean
 clean:

@@ -22,6 +22,8 @@ void VelocityVerlet::DoStep(bool UpdatePositions)
     //evaluate density
     m_DensityEvaluation(m_ParticleID);
     //evaluate acceleration
+    //update pressure
+    m_PressureEvaluation(m_ParticleID);
     m_AccelerationEvaluation(m_ParticleID);
     //update velocity using new acceleration
     double NewV = m_TempV + 0.5 * m_Timestep * m_Particle->GetA();
@@ -33,6 +35,11 @@ void VelocityVerlet::DoStep(bool UpdatePositions)
 void VelocityVerlet::EnergyEvaluation()
 {
     //evaluate energy
-    m_EnergyEvaluation(m_ParticleID);
+    m_ThermalEvaluation(m_ParticleID);
+    double EnergyChange = m_Particle->TemporyInternalEnergyGradient * m_Timestep;
+    auto[KE,U] = m_Particle->GetRecentEnergy();
+    m_Particle->UpdateThermalEnergy(U + EnergyChange);
+
+    m_KineticEvaluation(m_ParticleID);
     return;
 }
