@@ -2,14 +2,14 @@
 
 void ThreadPool::start()
 {
+	Terminate = false;
 	for (int i = 0; i < m_MaxThreads; i++)
 	{
 		m_threads.emplace_back(std::thread(&ThreadPool::ThreadLoop, this));
 	}
-	Terminate = false;
 }
 
-void ThreadPool::QueueJob(std::function<void(int)> job, int id)
+void ThreadPool::QueueJob(std::function<void()> job, int id)
 {
 	{
 		std::unique_lock<std::mutex> lock(m_Queue);
@@ -31,6 +31,18 @@ void ThreadPool::Stop()
 	m_threads.clear();
 }
 
+void ThreadPool::Pause()
+{
+	Paused = true;
+	//m_MutexCondition.notify_all();
+}
+
+void ThreadPool::Resume()
+{
+	Paused = false;
+	//m_MutexCondition.notify_all();
+}
+
 bool ThreadPool::Busy()
 {
 	bool poolbusy;
@@ -41,16 +53,25 @@ bool ThreadPool::Busy()
 	return poolbusy;
 }
 
+bool ThreadPool::CheckBusyThreads()
+{
+	if(m_BusyThreads == 0)
+		return false;
+    return true;
+}
+
 ThreadPool::ThreadPool(int max_threads)
 	:m_MaxThreads(max_threads)
 {
+	m_BusyThreads = 0;
 }
 
 void ThreadPool::ThreadLoop()
 {
 	while (true)
 	{
-		std::pair<std::function<void(int)>, int> job;
+		if(Paused) { continue; }
+		std::pair<std::function<void()>, int> job;
 		{
 			std::unique_lock<std::mutex> lock(m_Queue);
 			m_MutexCondition.wait(lock, [this] {
@@ -62,6 +83,17 @@ void ThreadPool::ThreadLoop()
 			job = jobs.front();
 			jobs.pop();
 		}
-		job.first(job.second);
+		//job.first(job.second);
+		{
+			m_Busy.lock();
+			m_BusyThreads++;
+			m_Busy.unlock();
+		}
+		job.first();
+		{
+			m_Busy.lock();
+			m_BusyThreads--;
+			m_Busy.unlock();
+		}
 	}
 }

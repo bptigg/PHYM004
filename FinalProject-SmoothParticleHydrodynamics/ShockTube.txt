@@ -1,0 +1,25 @@
+Region HighDensity
+{
+    Boundary = "-1.0 0 0";
+    Boundary = "0 0 0";
+    Density = "1.0";
+}
+
+Region LowDensity
+{
+    Boundary = "1.0 0 0";
+    Boundary = "0 0 0";
+    Density = "0.25";
+}
+
+Setup ShockTube
+{
+    Particles = "1000";
+    InitialTimestep = "0.00005";
+    Steps = "1000";
+    SmoothingLength = "0.1";
+    Dimensions = "1";
+    Gamma = "1.4";
+    BoundaryConditions = "false";
+    OutputFile = "ShockTubeResults4";
+}

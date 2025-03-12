@@ -8,8 +8,8 @@ OBJECTS_SRC = $(PATH_SRC)/Integrator.o $(PATH_SRC)/MultithreadingLockGuards.o $(
 OBJECTS = SPH.o $(OBJECTS_SRC)
 CC = g++ -std=c++20 #Compiler
 DEBUG = -g
-LFLAGS = -Wall -Wextra -g #-o3#linker flags
-CFLAGS = -Wall -Wextra -c -march=native -funroll-loops -fconcepts -g -fopenmp #-o3
+LFLAGS = -Wall -Wextra -g #linker flags
+CFLAGS = -Wall -Wextra -c -march=native -funroll-loops -fconcepts -g -fopenmp 
 LFLAGSrelease = $(LFLAGS) -o3
 CFLAGSrelease = $(CFLAGS) -o3
 #---------------------------------------------
