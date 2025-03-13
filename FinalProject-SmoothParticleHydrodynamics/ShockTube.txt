@@ -17,9 +17,9 @@ Setup ShockTube
     Particles = "1000";
     InitialTimestep = "0.00005";
     Steps = "1000";
-    SmoothingLength = "0.1";
-    Dimensions = "1";
+    SmoothingLength = "0.01";
+    Dimensions = "1"
     Gamma = "1.4";
     BoundaryConditions = "false";
-    OutputFile = "ShockTubeResults4";
+    OutputFile = "ShockTubeResults7";
 }

@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-file = "ShockTubeResults4"
+file = "ShockTubeResults7"
 EP = np.loadtxt(file + "_ENERGY_MOMENTUM.txt")
 X = np.loadtxt(file + "_POSITION.txt")
 D = np.loadtxt(file + "_DENSITY.txt")
@@ -36,29 +36,45 @@ for i in range(1,len(ThermalEnergy)):
     Change[1].append(ThermalEnergy[i] - Value)
     Value = ThermalEnergy[i]
 Change.append([])
+Value = Momentum[0]
+for i in range(1,len(Momentum)):
+    Change[2].append(Momentum[i] - Value)
+    Value = Momentum[i]
+Change.append([])
 for i in range(0,len(Change[0])):
-    Change[2].append(Change[1][i] + Change[0][i])
+    Change[3].append(Change[1][i] + Change[0][i])
 
 
 plt.plot(Change[0], label = "KE")
 plt.plot(Change[1], label = "U")
-plt.plot(Change[2], label = "Total Energy")
+plt.plot(Change[3], label = "Total Energy")
 plt.xlabel("Steps")
 plt.ylabel(r'$\Delta E$')
 plt.legend()
 plt.show()
+
+plt.plot(Change[2])
+plt.show()
+
 
 x = []
 rho = []
 velocity = []
 U = []
 
-for i in range(0,len(ModifiedData[1])):
+for i in range(0,len(ModifiedData[1][len(ModifiedData[1])-1])):
     x.append(ModifiedData[1][len(ModifiedData[1])-1][i])
     rho.append(ModifiedData[2][len(ModifiedData[2])-1][i])
     velocity.append(ModifiedData[3][len(ModifiedData[2])-1][i])
     U.append(ModifiedData[4][len(ModifiedData[2])-1][i])
+    #x.append(ModifiedData[1][0][i])
+    #rho.append(ModifiedData[2][0][i])
+    #velocity.append(ModifiedData[3][0][i])
+    #U.append(ModifiedData[4][0][i])
 
+y = np.zeros(len(x))
+plt.scatter(x,y)
+plt.show()
 
 plt.scatter(x,rho)
 plt.xlabel("Position")

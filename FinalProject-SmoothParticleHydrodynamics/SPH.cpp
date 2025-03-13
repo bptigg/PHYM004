@@ -23,7 +23,7 @@ void KernalFunction(double q, double h, double& ReturnValue, double& derivative)
     if(q <= 1)
     {
         ReturnValue = 1 - (3.0/2.0 * std::pow(q,2)) + (3.0/4.0 * std::pow(q,3));
-        derivative =  -1 * (3.0 * q + (9.0/4.0)*std::pow(q,2));
+        derivative =  -1 * ((3.0 * q) - (9.0/4.0)*std::pow(q,2));
     }
     else if(q <= 2)
     {
@@ -141,6 +141,7 @@ void DensityEvauluation(int a)
     double density = 0.0;
     for(int b = 0; b < s_AllParticles.size(); b++)
     {
+        if(Kernal[b].first == 0.0) {continue;}
         double Mass = s_AllParticles[b]->GetMass();
         density += Kernal[b].first * Mass;
     }
@@ -251,8 +252,8 @@ int main(int argc, char* argv[])
         std::sort(Boundaries.begin(), Boundaries.end(), [](std::array<double,3> a, std::array<double,3> b) {return a[0] < b[0];});
         for(int j = ParticleIndexOffset; j < ParticleDensity[i].first + ParticleIndexOffset; j++)
         {
-            double StepSize = (Boundaries[Boundaries.size() - 1][0] - Boundaries[0][0]) / (ParticleDensity[i].first + 1);
-            s_AllParticles[j]->UpdateX(Boundaries[0][0] + (j+1 - ParticleIndexOffset) * StepSize);
+            double StepSize = ((Boundaries[Boundaries.size() - 1][0]) - (Boundaries[0][0])) / (ParticleDensity[i].first);
+            s_AllParticles[j]->UpdateX(Boundaries[0][0] + (j - ParticleIndexOffset) * StepSize);
             s_AllParticles[j]->UpdateM(1.0);
             //std::cout << s_All
         }
@@ -343,6 +344,7 @@ int main(int argc, char* argv[])
         Pool.Resume();
         while(Pool.Busy()){};
         while(!ILG->Wait()){};
+        while(Pool.CheckBusyThreads()){};
         Pool.Pause();
         ILG->Reset();
         for(int j = 0; j < s_AllParticles.size(); j++)
@@ -352,6 +354,7 @@ int main(int argc, char* argv[])
         Pool.Resume();
         while(Pool.Busy()){};
         while(!ILG->Wait()){};
+        while(Pool.CheckBusyThreads()){};
         Pool.Pause();
         ILG->Reset();
         for(int j = 0; j < s_AllParticles.size(); j++)
@@ -361,6 +364,7 @@ int main(int argc, char* argv[])
         Pool.Resume();
         while(Pool.Busy()){};
         while(!ILG->Wait()){};
+        while(Pool.CheckBusyThreads()){};
         Pool.Pause();
         ILG->Reset();
         for (int j = 0; j < s_AllParticles.size(); j++)
