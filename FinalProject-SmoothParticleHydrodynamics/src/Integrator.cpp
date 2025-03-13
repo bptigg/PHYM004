@@ -1,4 +1,5 @@
 #include "Integrator.h"
+#include <cmath>
 
 void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Energy)
 {
@@ -31,6 +32,8 @@ void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Ener
         //evaluate acceleration
         //update pressure
         m_PressureEvaluation(m_ParticleID);
+        double Prhosquared = m_Particle->GetP() * (1/std::pow(m_Particle->GetRho(), 2));
+        m_Particle->GetCache().PressureOverDensitySquared = Prhosquared;
         m_LockGaurd->UpdateCurrentChecks();
         return;
     }
@@ -64,6 +67,7 @@ void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Ener
     m_SystemStep++;
 
     m_Output->UpdateData(data,m_ParticleID);
+    m_Particle->ClearCache();
     return;
 
 }

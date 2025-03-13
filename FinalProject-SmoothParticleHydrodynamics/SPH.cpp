@@ -43,6 +43,7 @@ void KernalFunction(double q, double h, double& ReturnValue, double& derivative)
 void KernalEvaulation(int a)
 {
     auto TargetParticle = s_AllParticles[a];
+    std::vector<int> KernalIndex;
     std::vector<Kernal> KernalEvaulations;
     TargetParticle->ClearKernal();
     for(int b = 0; b < s_AllParticles.size(); b++)
@@ -53,8 +54,13 @@ void KernalEvaulation(int a)
         double q = std::abs(RadiusDiff) / s_h;
         KernalFunction(q, s_h, ReturnValue, DerivativeValue);
         KernalEvaulations.push_back({ReturnValue, DerivativeValue});
+        if(ReturnValue != 0.0 || DerivativeValue != 0.0)
+        {
+            KernalIndex.push_back(b);
+        }
     }
     TargetParticle->UpdateKernal(KernalEvaulations);
+    TargetParticle->GetCache().KernalResults = KernalIndex;
 }
 
 void EnergyEvaluation(int a)
@@ -68,8 +74,11 @@ void EnergyEvaluation(int a)
     auto VelocityA = TargetParticle->GetV();
     double Energy = 0.0;
     double r = 0.0;
-    for(int b = 0; b < s_AllParticles.size(); b++)
+    auto ParticleIndex = TargetParticle->GetCache().KernalResults;
+    //for(int b = 0; b < s_AllParticles.size(); b++)
+    for(int i = 0; i < ParticleIndex.size(); i++)
     {
+        int b = ParticleIndex[i];
         if(Kernal[b].first == 0.0) {continue;}
         r = s_AllParticles[b]->GetX() - TargetParticle->GetX();
         if(r == 0.0) {continue;}
@@ -115,16 +124,29 @@ void AccelerationEvaluation(int a)
     auto Kernal = TargetParticle->GetKernal();
     auto Pressure = TargetParticle->GetP();
     auto Density = TargetParticle->GetRho();
-    double ValA = Pressure * (1 / std::pow(Density,2));
+    double ValA = TargetParticle->GetCache().PressureOverDensitySquared;
+    if(ValA == 0.0)
+    {
+        ValA = Pressure * (1 / std::pow(Density,2));
+        TargetParticle->GetCache().PressureOverDensitySquared = ValA;
+    }
     double acceleration = 0.0;
     double r = 0.0;
-    for(int b = 0; b < s_AllParticles.size(); b++)
+    auto ParticleIndex = TargetParticle->GetCache().KernalResults;
+    //for(int b = 0; b < s_AllParticles.size(); b++)
+    for(int i = 0; i < ParticleIndex.size(); i++)
     {
+        int b = ParticleIndex[i];
         if(Kernal[b].first == 0.0) {continue;}
         r = s_AllParticles[b]->GetX() - TargetParticle->GetX();
         if(r == 0.0) {continue;}
         double Mass = s_AllParticles[b]->GetMass();
-        double ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
+        double ValB = s_AllParticles[b]->GetCache().PressureOverDensitySquared;
+        if(ValB == 0.0)
+        {
+            ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
+            s_AllParticles[b]->GetCache().PressureOverDensitySquared = ValB;
+        }
         double AccAB = Mass * (ValA + ValB) * Kernal[b].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
         acceleration += AccAB;
     }
@@ -139,8 +161,11 @@ void DensityEvauluation(int a)
     auto TargetParticle = s_AllParticles[a];
     auto Kernal = TargetParticle->GetKernal();
     double density = 0.0;
-    for(int b = 0; b < s_AllParticles.size(); b++)
+    auto ParticleIndex = TargetParticle->GetCache().KernalResults;
+    //for(int b = 0; b < s_AllParticles.size(); b++)
+    for(int i = 0; i < ParticleIndex.size(); i++)
     {
+        int b = ParticleIndex[i];
         if(Kernal[b].first == 0.0) {continue;}
         double Mass = s_AllParticles[b]->GetMass();
         density += Kernal[b].first * Mass;
@@ -156,6 +181,8 @@ void PressureEvaulation(int a)
     auto[KineticEnergy, ThermalEnergy] = TargetParticle->GetRecentEnergy();
     double Pressure = density * ThermalEnergy;
     TargetParticle->UpdateP(Pressure);
+    double dPdrho = ThermalEnergy;
+    TargetParticle->UpdatePrho(dPdrho);
 }
 
 void PolytropicPressureEvaluation(int a)
@@ -165,6 +192,8 @@ void PolytropicPressureEvaluation(int a)
     double density = TargetParticle->GetRho();
     double Pressure = s_K * std::pow(density, s_Gamma);
     TargetParticle->UpdateP(Pressure);
+    double dPdrho = s_K * s_Gamma * std::pow(density,s_Gamma-1);
+    TargetParticle->UpdatePrho(dPdrho);
 }
 
 void InitialConditions(int a)
@@ -173,6 +202,19 @@ void InitialConditions(int a)
     DensityEvauluation(a);
     PolytropicPressureEvaluation(a);
     //AccelerationEvaluation(a);
+}
+
+void SpeedOfSound(int a)
+{
+    //Cs = sqrt(K/P) = sqrt(rho*(dP/drho)/P)
+    auto TargetParticle = s_AllParticles[a];
+    double density = TargetParticle->GetRho();
+    double Pressure = TargetParticle->GetP();
+    double dPdrho = TargetParticle->GetdPdrho();
+    
+    double BulkModulus = density * dPdrho;
+    double SpeedOfSound = std::sqrt(BulkModulus/Pressure);
+    TargetParticle->UpdateCs(SpeedOfSound);
 }
 
 //void Step(int FunctionId, std::unique_ptr<VelocityVerlet> Integrator, bool Positions, bool Kernal, bool Energy) //FunctionId serves no purpose but to work with the ThreadPool

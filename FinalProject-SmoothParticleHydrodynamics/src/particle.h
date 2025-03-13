@@ -8,6 +8,10 @@
 
 typedef std::pair<double, double> Kernal;
 
+typedef struct ParticleCache {
+    float PressureOverDensitySquared;
+    std::vector<int> KernalResults;
+};
 
 class Particle
 {
@@ -15,9 +19,11 @@ private:
     float m_xCoord;
     float m_Velocity;
     float m_Acceleration;
+    float m_SpeedOfSound;
 
     float m_Density;
     float m_Pressure;
+    float m_PressureDensityDerivarive;
 
     float m_Mass;
 
@@ -26,7 +32,14 @@ private:
     
     std::vector<float> m_KineticEnergy;
     std::vector<float> m_ThermalEnergy;
+
+    ParticleCache m_Cache;
+
 public:
+
+    ParticleCache& GetCache() {return m_Cache;}
+    void ClearCache() {m_Cache.PressureOverDensitySquared = 0.0; m_Cache.KernalResults.clear();};
+
     inline void UpdateX(float NewXCoord) { m_xCoord = NewXCoord; };
     inline float GetX() { return m_xCoord; };
 
@@ -42,8 +55,14 @@ public:
     inline void UpdateP(float NewPressure) { m_Pressure = NewPressure; };
     inline float GetP() { return m_Pressure; };
 
+    inline void UpdatePrho(float NewPressureRho) {m_PressureDensityDerivarive = NewPressureRho; };
+    inline float GetdPdrho() { return m_PressureDensityDerivarive; };
+
     inline void UpdateM(float NewMass) { m_Mass = NewMass; };
     inline float GetMass() { return m_Mass; };
+
+    inline void UpdateCs(float NewCs) { m_SpeedOfSound = NewCs; };
+    inline float GetCs() { return m_SpeedOfSound; };
 
     inline void UpdateKernal(std::vector<Kernal> KernalResults) { 
         for(int i = 0; i < KernalResults.size(); i++)
@@ -57,7 +76,6 @@ public:
 
     inline void UpdateKineticEnergy(float Energy) { m_KineticEnergy.push_back(Energy); };
     inline void UpdateThermalEnergy(float Energy) { m_ThermalEnergy.push_back(Energy); };
-
 
     std::tuple<double, double, double> GetInitialConditions() {
         std::tuple<double, double, double> ReturnValues = {
