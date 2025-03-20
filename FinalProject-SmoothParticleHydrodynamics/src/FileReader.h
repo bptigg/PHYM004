@@ -57,6 +57,7 @@ public:
         double Density;
         double ThermalEnergy;
         double KineticEnergy;
+        double Pressure;
     };
 private:
     OutputLockGuard* m_OLG;

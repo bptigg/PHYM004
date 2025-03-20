@@ -32,6 +32,7 @@ private:
     
     std::vector<float> m_KineticEnergy;
     std::vector<float> m_ThermalEnergy;
+    std::vector<float> m_Viscosity;
 
     ParticleCache m_Cache;
 
@@ -94,8 +95,15 @@ public:
         return ReturnValues;
     }
 
+    const std::vector<float>& GetViscosity() {return m_Viscosity;};
+    void UpdateViscosity(float val) {m_Viscosity.push_back(val);};
+    void UpdateViscosity(float val,int index) {m_Viscosity[index] = val;};
+    void ClearViscosity() {m_Viscosity.clear();};
+
+
 public:
     double TemporyInternalEnergyGradient = 0.0;
+    std::vector<float> VelocityApproach;
 
 };
 

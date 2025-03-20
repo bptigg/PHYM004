@@ -301,7 +301,7 @@ std::string FileReader::ReadSingleValue(std::string::iterator& c)
 
 FileOutput::FileOutput(std::string filename, OutputLockGuard* OLG)
 {
-    std::array<std::string,5> Files = {"ENERGY_MOMENTUM", "POSITION", "DENSITY", "VELOCITY", "ENERGY_POSITION"};
+    std::array<std::string,6> Files = {"ENERGY_MOMENTUM", "POSITION", "DENSITY", "VELOCITY", "ENERGY_POSITION", "PRESSURE_POSITION"};
     for(auto extension : Files)
     {
         std::string ModifiedFilename = filename + "_" + extension + ".txt";
@@ -343,7 +343,7 @@ void FileOutput::WriteData()
             double KE = 0;
             double U = 0;
             double Momentum = 0;
-            std::vector<std::array<double,4>> Position_Density_Velocity;
+            std::vector<std::array<double,5>> Position_Density_Velocity;
             std::vector<std::pair<FileOutput::ParticleData, int>> data;
 
             {
@@ -375,7 +375,7 @@ void FileOutput::WriteData()
                 U  += pData.ThermalEnergy;
                 Momentum += pData.Velocity;
             
-                Position_Density_Velocity.push_back({pData.Position, pData.Density, pData.Velocity, pData.ThermalEnergy});
+                Position_Density_Velocity.push_back({pData.Position, pData.Density, pData.Velocity, pData.ThermalEnergy, pData.Pressure});
             }
         
             for (auto& it : m_Files)

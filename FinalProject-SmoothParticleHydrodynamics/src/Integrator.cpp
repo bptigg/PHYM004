@@ -63,6 +63,7 @@ void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Ener
     auto[KE,U] = m_Particle->GetRecentEnergy();
     data.KineticEnergy = KE;
     data.ThermalEnergy = U;
+    data.Pressure = m_Particle->GetP();
     data.step = m_SystemStep;
     m_SystemStep++;
 

@@ -37,7 +37,8 @@ void KernalFunction(double q, double h, double& ReturnValue, double& derivative)
     }
 
     ReturnValue = ReturnValue * (2.0/(3*h));
-    derivative = derivative * (-2.0/(3*std::pow(h,2))); 
+    //derivative = derivative * (-2.0/(3*std::pow(h,2))); 
+    derivative = derivative * (2.0/(3*std::pow(h,2))); 
 }
 
 void KernalEvaulation(int a)
@@ -63,6 +64,41 @@ void KernalEvaulation(int a)
     TargetParticle->GetCache().KernalResults = KernalIndex;
 }
 
+void SpeedOfSound(int a)
+{
+    //Cs = sqrt(K/P) = sqrt(rho*(dP/drho)/P)
+    auto TargetParticle = s_AllParticles[a];
+    double density = TargetParticle->GetRho();
+    double Pressure = TargetParticle->GetP();
+    double dPdrho = TargetParticle->GetdPdrho();
+    
+    double BulkModulus = density * dPdrho;
+    double SpeedOfSound = std::sqrt(BulkModulus/Pressure);
+    TargetParticle->UpdateCs(SpeedOfSound);
+}
+
+void ArtificialViscosity(double r, double v, std::pair<int,int> Particles, double& viscosity)
+{
+    double alpha = 1;
+    double beta = 2;
+    double epsilon = 0.01;
+
+    double mu = 0.0;
+    double approach = r * v;
+
+    if(approach >= 0) {viscosity = 0.0; return;}
+
+    double AvgSpeedOfSound = (s_AllParticles[Particles.first]->GetCs() + s_AllParticles[Particles.second]->GetCs()) * 0.5;
+    double AvgDensity = (s_AllParticles[Particles.first]->GetRho() + s_AllParticles[Particles.second]->GetRho()) * 0.5;
+
+    
+    mu = (s_h * approach) / (std::pow(r,2) + (epsilon*std::pow(s_h,2)));
+    viscosity = (-1 * alpha * AvgSpeedOfSound * mu) + (beta * std::pow(mu,2));
+    viscosity = viscosity / AvgDensity;
+    viscosity = 0.0;
+    return;
+}
+
 void EnergyEvaluation(int a)
 {
     //In 1D
@@ -74,20 +110,27 @@ void EnergyEvaluation(int a)
     auto VelocityA = TargetParticle->GetV();
     double Energy = 0.0;
     double r = 0.0;
+    double PressureOverRhoSquared = Pressure * std::pow(Density,-2);
     auto ParticleIndex = TargetParticle->GetCache().KernalResults;
     //for(int b = 0; b < s_AllParticles.size(); b++)
     for(int i = 0; i < ParticleIndex.size(); i++)
     {
         int b = ParticleIndex[i];
         if(Kernal[b].first == 0.0) {continue;}
-        r = s_AllParticles[b]->GetX() - TargetParticle->GetX();
+        //r = s_AllParticles[b]->GetX() - TargetParticle->GetX();
+        r = TargetParticle->GetX() - s_AllParticles[b]->GetX();
         if(r == 0.0) {continue;}
         double Mass = s_AllParticles[b]->GetMass();
         double VelocityB = s_AllParticles[b]->GetV();
-        double EAB = Mass * (VelocityA - VelocityB) * Kernal[b].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
+        double VelocityDiff = VelocityA - VelocityB;
+        //double VelocityDiff = TargetParticle->VelocityApproach[i];
+        double GradKernal = Kernal[b].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
+        double EABFirstTerm = Mass * VelocityDiff * GradKernal;
+        double EABSecondTerm = 0.5 * Mass * TargetParticle->GetViscosity()[i] * VelocityDiff * GradKernal;
+        EABFirstTerm = EABFirstTerm * PressureOverRhoSquared;
+        double EAB = EABFirstTerm + EABSecondTerm;
         Energy += EAB;
     }
-    Energy = Energy * (Pressure * std::pow(Density,-2));
 
     //TargetParticle->UpdateThermalEnergy(Energy);
     TargetParticle->TemporyInternalEnergyGradient = Energy;
@@ -133,21 +176,31 @@ void AccelerationEvaluation(int a)
     double acceleration = 0.0;
     double r = 0.0;
     auto ParticleIndex = TargetParticle->GetCache().KernalResults;
+    TargetParticle->ClearViscosity();
+    TargetParticle->VelocityApproach.clear();
     //for(int b = 0; b < s_AllParticles.size(); b++)
     for(int i = 0; i < ParticleIndex.size(); i++)
     {
         int b = ParticleIndex[i];
+        TargetParticle->UpdateViscosity(0.0);
+        TargetParticle->VelocityApproach.push_back(0.0);
         if(Kernal[b].first == 0.0) {continue;}
-        r = s_AllParticles[b]->GetX() - TargetParticle->GetX();
+        //r = s_AllParticles[b]->GetX() - TargetParticle->GetX();
+        r = TargetParticle->GetX() - s_AllParticles[b]->GetX();
         if(r == 0.0) {continue;}
         double Mass = s_AllParticles[b]->GetMass();
         double ValB = s_AllParticles[b]->GetCache().PressureOverDensitySquared;
-        if(ValB == 0.0)
+        //double ApprochVelocity = s_AllParticles[b]->GetV() - TargetParticle->GetV();
+        double ApprochVelocity = TargetParticle->GetV() - s_AllParticles[b]->GetV();
         {
             ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
             s_AllParticles[b]->GetCache().PressureOverDensitySquared = ValB;
         }
-        double AccAB = Mass * (ValA + ValB) * Kernal[b].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
+        double Viscosity = 0.0;
+        ArtificialViscosity(r,ApprochVelocity,{a,b},Viscosity);
+        TargetParticle->UpdateViscosity(Viscosity,i);
+        TargetParticle->VelocityApproach[i] = ApprochVelocity;
+        double AccAB = Mass * (ValA + ValB + Viscosity) * Kernal[b].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
         acceleration += AccAB;
     }
 
@@ -183,6 +236,7 @@ void PressureEvaulation(int a)
     TargetParticle->UpdateP(Pressure);
     double dPdrho = ThermalEnergy;
     TargetParticle->UpdatePrho(dPdrho);
+    SpeedOfSound(a);
 }
 
 void PolytropicPressureEvaluation(int a)
@@ -194,6 +248,7 @@ void PolytropicPressureEvaluation(int a)
     TargetParticle->UpdateP(Pressure);
     double dPdrho = s_K * s_Gamma * std::pow(density,s_Gamma-1);
     TargetParticle->UpdatePrho(dPdrho);
+    SpeedOfSound(a);
 }
 
 void InitialConditions(int a)
@@ -202,19 +257,6 @@ void InitialConditions(int a)
     DensityEvauluation(a);
     PolytropicPressureEvaluation(a);
     //AccelerationEvaluation(a);
-}
-
-void SpeedOfSound(int a)
-{
-    //Cs = sqrt(K/P) = sqrt(rho*(dP/drho)/P)
-    auto TargetParticle = s_AllParticles[a];
-    double density = TargetParticle->GetRho();
-    double Pressure = TargetParticle->GetP();
-    double dPdrho = TargetParticle->GetdPdrho();
-    
-    double BulkModulus = density * dPdrho;
-    double SpeedOfSound = std::sqrt(BulkModulus/Pressure);
-    TargetParticle->UpdateCs(SpeedOfSound);
 }
 
 //void Step(int FunctionId, std::unique_ptr<VelocityVerlet> Integrator, bool Positions, bool Kernal, bool Energy) //FunctionId serves no purpose but to work with the ThreadPool
@@ -311,6 +353,7 @@ int main(int argc, char* argv[])
     }
     Pool.start();
     while(Pool.Busy()){}
+    while(Pool.CheckBusyThreads()){};
     Pool.Pause();
     //Pool.Stop();
     for(int i = 0; i < s_AllParticles.size(); i++)
@@ -321,6 +364,7 @@ int main(int argc, char* argv[])
     Pool.Resume();
     //Pool.start();
     while(Pool.Busy()){}
+    while(Pool.CheckBusyThreads()){};
     //Pool.Stop();
     Pool.Pause();
 
@@ -333,6 +377,7 @@ int main(int argc, char* argv[])
     }
     Pool.Resume();
     while(Pool.Busy()){}
+    while(Pool.CheckBusyThreads()){};
     Pool.Stop();
     double TotalEnergy = 0.0;
     EnergyValuesPtr = EnergyValues;
