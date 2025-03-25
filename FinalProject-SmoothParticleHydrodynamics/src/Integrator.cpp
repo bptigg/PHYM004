@@ -15,6 +15,8 @@ void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Ener
         //new position = inital r + timestep * half timestep v
         double NewX = Position + m_Timestep * HalfV;
         m_Particle->UpdateX(NewX);
+        m_Particle->UpdateV(HalfV);
+        m_Particle->UpdateThermalEnergy(HalfU);
         m_LockGaurd->UpdateCurrentChecks();
         m_TempV = HalfV;
         m_TempU = HalfU;
@@ -41,19 +43,20 @@ void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Ener
     if(!Energy)
     {    
         m_AccelerationEvaluation(m_ParticleID);
+        //m_ThermalEvaluation(m_ParticleID);
+        //m_KineticEvaluation(m_ParticleID);
         //update velocity using new acceleration
-        double NewV = m_TempV + 0.5 * m_Timestep * m_Particle->GetA();
-        m_Particle->UpdateV(NewV);
         m_LockGaurd->UpdateCurrentChecks();
         return;
     }
 
-    m_ThermalEvaluation(m_ParticleID);
-    m_KineticEvaluation(m_ParticleID);
+    //m_ThermalEvaluation(m_ParticleID);
+    double NewV = m_TempV + 0.5 * m_Timestep * m_Particle->GetA();
     double NewEnergy = m_TempU + 0.5 * m_Timestep * m_Particle->TemporyInternalEnergyGradient;
+    m_Particle->UpdateV(NewV);
     m_Particle->UpdateThermalEnergy(NewEnergy);
+    m_KineticEvaluation(m_ParticleID);
     //m_Particle->UpdateKineticEnergy(NewKE);
-    m_LockGaurd->UpdateCurrentChecks();
 
     FileOutput::ParticleData data;
     auto[Velocity, Accerleration, Position] = m_Particle->GetInitialConditions();
@@ -69,6 +72,9 @@ void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Ener
 
     m_Output->UpdateData(data,m_ParticleID);
     m_Particle->ClearCache();
+    //data.Density = m_Particle->GetRho();
+    m_LockGaurd->UpdateCurrentChecks();
+
     return;
 
 }

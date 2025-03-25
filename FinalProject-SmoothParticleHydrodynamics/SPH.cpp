@@ -32,8 +32,8 @@ void KernalFunction(double q, double h, double& ReturnValue, double& derivative)
     }
     else
     {
-        ReturnValue = 0;
-        derivative = 0;
+        ReturnValue = 0.0;
+        derivative = 0.0;
     }
 
     ReturnValue = ReturnValue * (2.0/(3*h));
@@ -54,9 +54,9 @@ void KernalEvaulation(int a)
         double DerivativeValue = 0;
         double q = std::abs(RadiusDiff) / s_h;
         KernalFunction(q, s_h, ReturnValue, DerivativeValue);
-        KernalEvaulations.push_back({ReturnValue, DerivativeValue});
-        if(ReturnValue != 0.0 || DerivativeValue != 0.0)
+        if(ReturnValue != 0.0 )//|| DerivativeValue != 0.0)
         {
+            KernalEvaulations.push_back({ReturnValue, DerivativeValue});
             KernalIndex.push_back(b);
         }
     }
@@ -95,7 +95,7 @@ void ArtificialViscosity(double r, double v, std::pair<int,int> Particles, doubl
     mu = (s_h * approach) / (std::pow(r,2) + (epsilon*std::pow(s_h,2)));
     viscosity = (-1 * alpha * AvgSpeedOfSound * mu) + (beta * std::pow(mu,2));
     viscosity = viscosity / AvgDensity;
-    viscosity = 0.0;
+    //viscosity = 0.0;
     return;
 }
 
@@ -168,23 +168,24 @@ void AccelerationEvaluation(int a)
     auto Pressure = TargetParticle->GetP();
     auto Density = TargetParticle->GetRho();
     double ValA = TargetParticle->GetCache().PressureOverDensitySquared;
-    if(ValA == 0.0)
+    //if(ValA == 0.0)
     {
         ValA = Pressure * (1 / std::pow(Density,2));
         TargetParticle->GetCache().PressureOverDensitySquared = ValA;
     }
     double acceleration = 0.0;
+    double Energy = 0.0;
     double r = 0.0;
     auto ParticleIndex = TargetParticle->GetCache().KernalResults;
-    TargetParticle->ClearViscosity();
-    TargetParticle->VelocityApproach.clear();
+    //TargetParticle->ClearViscosity();
+    //TargetParticle->VelocityApproach.clear();
     //for(int b = 0; b < s_AllParticles.size(); b++)
     for(int i = 0; i < ParticleIndex.size(); i++)
     {
         int b = ParticleIndex[i];
-        TargetParticle->UpdateViscosity(0.0);
-        TargetParticle->VelocityApproach.push_back(0.0);
-        if(Kernal[b].first == 0.0) {continue;}
+        //TargetParticle->UpdateViscosity(0.0);
+        //TargetParticle->VelocityApproach.push_back(0.0);
+        if(Kernal[i].first == 0.0) {continue;}
         //r = s_AllParticles[b]->GetX() - TargetParticle->GetX();
         r = TargetParticle->GetX() - s_AllParticles[b]->GetX();
         if(r == 0.0) {continue;}
@@ -192,19 +193,27 @@ void AccelerationEvaluation(int a)
         double ValB = s_AllParticles[b]->GetCache().PressureOverDensitySquared;
         //double ApprochVelocity = s_AllParticles[b]->GetV() - TargetParticle->GetV();
         double ApprochVelocity = TargetParticle->GetV() - s_AllParticles[b]->GetV();
+        //if(ValB == 0.0)
         {
             ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
             s_AllParticles[b]->GetCache().PressureOverDensitySquared = ValB;
         }
         double Viscosity = 0.0;
         ArtificialViscosity(r,ApprochVelocity,{a,b},Viscosity);
-        TargetParticle->UpdateViscosity(Viscosity,i);
-        TargetParticle->VelocityApproach[i] = ApprochVelocity;
-        double AccAB = Mass * (ValA + ValB + Viscosity) * Kernal[b].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
+        //TargetParticle->UpdateViscosity(Viscosity,i);
+        //TargetParticle->VelocityApproach[i] = ApprochVelocity;
+        double GradKernal = Kernal[i].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
+        double AccAB = Mass * (ValA + ValB + Viscosity) * GradKernal;
         acceleration += AccAB;
-    }
 
+        double EABFirstTerm = Mass * ApprochVelocity * GradKernal;
+        double EABSecondTerm = 0.5 * Mass * Viscosity * ApprochVelocity * GradKernal;
+        EABFirstTerm = EABFirstTerm * ValA;
+        double EAB = EABFirstTerm + EABSecondTerm;
+        Energy += EAB;
+    }
     TargetParticle->UpdateA(-1.0 * acceleration);
+    TargetParticle->TemporyInternalEnergyGradient = Energy;
 }
 
 void DensityEvauluation(int a)
@@ -219,9 +228,9 @@ void DensityEvauluation(int a)
     for(int i = 0; i < ParticleIndex.size(); i++)
     {
         int b = ParticleIndex[i];
-        if(Kernal[b].first == 0.0) {continue;}
+        if(Kernal[i].first == 0.0) {continue;}
         double Mass = s_AllParticles[b]->GetMass();
-        density += Kernal[b].first * Mass;
+        density += Kernal[i].first * Mass;
     }
     TargetParticle->UpdateRho(density);
 }
@@ -257,6 +266,24 @@ void InitialConditions(int a)
     DensityEvauluation(a);
     PolytropicPressureEvaluation(a);
     //AccelerationEvaluation(a);
+}
+
+bool CheckSymmetry()
+{
+    for(int i = 0; i < s_AllParticles.size(); i++)
+    {
+        auto kernal = s_AllParticles[i]->GetKernal();
+        for (int j = 0; j < s_AllParticles.size(); j++)
+        {
+            auto kernal2 = s_AllParticles[j]->GetKernal();
+            if(kernal[j].first != kernal2[i].first)
+            {
+                return false;
+            }
+
+        }
+    }
+    return true;
 }
 
 //void Step(int FunctionId, std::unique_ptr<VelocityVerlet> Integrator, bool Positions, bool Kernal, bool Energy) //FunctionId serves no purpose but to work with the ThreadPool
@@ -426,7 +453,7 @@ int main(int argc, char* argv[])
         ILG->Reset();
         for(int j = 0; j < s_AllParticles.size(); j++)
         {
-            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), true, false, true), j);
+            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), true, false, false), j);
         }
         Pool.Resume();
         while(Pool.Busy()){};
@@ -436,13 +463,18 @@ int main(int argc, char* argv[])
         ILG->Reset();
         for(int j = 0; j < s_AllParticles.size(); j++)
         {
-            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), false, true, true), j);
+            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), false, true, false), j);
         }
         Pool.Resume();
         while(Pool.Busy()){};
         while(!ILG->Wait()){};
         while(Pool.CheckBusyThreads()){};
         Pool.Pause();
+        //if(!CheckSymmetry())
+        //{
+        //    std::cout << "False" << std::endl;
+        //    std::cin.get();
+        //}
         ILG->Reset();
         for(int j = 0; j < s_AllParticles.size(); j++)
         {
@@ -462,6 +494,7 @@ int main(int argc, char* argv[])
         Pool.Resume();
         while(Pool.Busy()){};
         while(!ILG->Wait()){};
+        //while(Pool.CheckBusyThreads()){};
         Pool.Pause();
         ILG->Reset();
         TotalEnergy = 0.0;

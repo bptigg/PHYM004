@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
-file = "ShockTubeResults9"
+file = "ShockTubeResults12"
 EP = np.loadtxt(file + "_ENERGY_MOMENTUM.txt")
 X = np.loadtxt(file + "_POSITION.txt")
 D = np.loadtxt(file + "_DENSITY.txt")
