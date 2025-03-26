@@ -95,7 +95,7 @@ void ArtificialViscosity(double r, double v, std::pair<int,int> Particles, doubl
     mu = (s_h * approach) / (std::pow(r,2) + (epsilon*std::pow(s_h,2)));
     viscosity = (-1 * alpha * AvgSpeedOfSound * mu) + (beta * std::pow(mu,2));
     viscosity = viscosity / AvgDensity;
-    //viscosity = 0.0;
+    viscosity = 0.0;
     return;
 }
 
@@ -273,10 +273,22 @@ bool CheckSymmetry()
     for(int i = 0; i < s_AllParticles.size(); i++)
     {
         auto kernal = s_AllParticles[i]->GetKernal();
-        for (int j = 0; j < s_AllParticles.size(); j++)
+        auto kernalindex = s_AllParticles[i]->GetCache().KernalResults;
+        for (int j = 0; j < kernalindex.size(); j++)
         {
-            auto kernal2 = s_AllParticles[j]->GetKernal();
-            if(kernal[j].first != kernal2[i].first)
+            int index1 = kernalindex[j];
+            if (i == index1) {continue;}
+            auto kernalindex2 = s_AllParticles[index1]->GetCache().KernalResults;
+            int index2 = 0;
+            for (int e : kernalindex2)
+            {
+                if(e == i)
+                    break;
+                else
+                    index2++;
+            }
+            auto kernal2 = s_AllParticles[index1]->GetKernal();
+            if(kernal[j].first != kernal2[index2].first)
             {
                 return false;
             }
@@ -322,7 +334,7 @@ int main(int argc, char* argv[])
     auto PhysicalBoundaries = SetupData.PhysicalBoundaries;
     std::sort(PhysicalBoundaries.begin(), PhysicalBoundaries.end(), [](std::array<double,3> a, std::array<double,3> b) {return a[0] < b[0];});
     unsigned int SystemSize = PhysicalBoundaries[PhysicalBoundaries.size() - 1][0] - PhysicalBoundaries[0][0];
-    std::vector<unsigned int> RegionSizes = {};
+    std::vector<double> RegionSizes = {};
     for(auto R : RegionData)
     {
         auto Boundaries = R.Boundaries;
@@ -334,7 +346,14 @@ int main(int argc, char* argv[])
         s_AllParticles.push_back(std::make_shared<Particle>());
     }
 
+    std::vector<std::pair<double,int>> Regions = {};
+    for (int i = 0; i < RegionData.size(); i++)
+    {
+        Regions.push_back({RegionSizes[i],i});
+    }
+    std::sort(Regions.begin(), Regions.end(), [](std::pair<double,int> a, std::pair<double,int> b) {return a.first < b.first;});
     std::vector<std::pair<double,int>> DensityRatio = {};
+    std::vector<std::pair<double,int>> SizeRatio = {};
     std::vector<std::pair<double,int>> Density = {}; 
     for(int i = 0; i < RegionSizes.size(); i++)
     {   
@@ -344,6 +363,21 @@ int main(int argc, char* argv[])
     for(int i = 0; i < Density.size(); i++)
     {
         DensityRatio.push_back({Density[i].first / Density[0].first, Density[i].second});
+        SizeRatio.push_back({Regions[i].first / Regions[0].first, Regions[i].second});
+    }
+    for (int i = 0; i < SizeRatio.size(); i++)
+    {
+        int index = 0;
+        for(int j = 0; j < DensityRatio.size(); j++)
+        {
+            if(DensityRatio[j].second = SizeRatio[i].second)
+            {
+                index = j;
+                break;
+            }
+            index++;
+        }
+        DensityRatio[index].first = DensityRatio[index].first * SizeRatio[i].first;
     }
     double TotalDensityRatio = 0.0;
     for(auto D : DensityRatio)
@@ -355,6 +389,11 @@ int main(int argc, char* argv[])
     {
         ParticleDensity.push_back({DensityRatio[i].first * ParticleCount / TotalDensityRatio, DensityRatio[i].second});
     }
+    for (int i = 0; i < ParticleDensity.size(); i++)
+    {
+        ParticleDensity[i].first = std::round(ParticleDensity[i].first);
+    }
+
     std::sort(ParticleDensity.begin(), ParticleDensity.end(), [](std::pair<double,int> a, std::pair<double,int> b) {return a.second < b.second;});
     int ParticleIndexOffset = 0;
     for(int i = 0; i < RegionData.size(); i++)
