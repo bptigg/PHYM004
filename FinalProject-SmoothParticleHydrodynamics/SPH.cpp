@@ -404,7 +404,7 @@ int main(int argc, char* argv[])
         {
             double StepSize = ((Boundaries[Boundaries.size() - 1][0]) - (Boundaries[0][0])) / (ParticleDensity[i].first);
             s_AllParticles[j]->UpdateX(Boundaries[0][0] + (j - ParticleIndexOffset) * StepSize);
-            s_AllParticles[j]->UpdateM(1.0);
+            s_AllParticles[j]->UpdateM(s_h * RegionData[i].InitialDensity/ (ParticleDensity[i].first*s_h/Regions[i].first));
             //std::cout << s_All
         }
         ParticleIndexOffset += ParticleDensity[i].first;
