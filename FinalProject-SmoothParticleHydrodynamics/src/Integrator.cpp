@@ -1,9 +1,9 @@
 #include "Integrator.h"
 #include <cmath>
 
-void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Energy)
+void VelocityVerlet::DoStep(int step)
 {
-    if(UpdatePositions)
+    if(step == 1)
     {
         //get intial conditions (velocity, acceleration and postition)
         auto[Velocity, Accerleration, Position] = m_Particle->GetInitialConditions();
@@ -25,7 +25,7 @@ void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Ener
 
     //wait for all particles positions to be updated
 
-    if(UpdatePressure)
+    if(step == 2)
     {
         //evaluate kernals
         m_KernalEvaluation(m_ParticleID);
@@ -34,13 +34,13 @@ void VelocityVerlet::DoStep(bool UpdatePositions, bool UpdatePressure, bool Ener
         //evaluate acceleration
         //update pressure
         m_PressureEvaluation(m_ParticleID);
-        double Prhosquared = m_Particle->GetP() * (1/std::pow(m_Particle->GetRho(), 2));
-        m_Particle->GetCache().PressureOverDensitySquared = Prhosquared;
+        //double Prhosquared = m_Particle->GetP() * (1/std::pow(m_Particle->GetRho(), 2));
+        //m_Particle->GetCache().PressureOverDensitySquared = Prhosquared;
         m_LockGaurd->UpdateCurrentChecks();
         return;
     }
 
-    if(!Energy)
+    if(step == 3)
     {    
         m_AccelerationEvaluation(m_ParticleID);
         //m_ThermalEvaluation(m_ParticleID);

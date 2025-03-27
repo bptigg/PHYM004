@@ -15,7 +15,9 @@ static float s_K = 1.0;
 
 int DiracDelta(int a, int b)
 {
-    return a==b;
+    if(a==b)
+        return 1;
+    return 0;
 }
 
 void KernalFunction(double q, double h, double& ReturnValue, double& derivative) //(pos of a - pos of b, smoothing length)
@@ -23,12 +25,12 @@ void KernalFunction(double q, double h, double& ReturnValue, double& derivative)
     if(q <= 1)
     {
         ReturnValue = 1 - (3.0/2.0 * std::pow(q,2)) + (3.0/4.0 * std::pow(q,3));
-        derivative =  -1 * ((3.0 * q) - (9.0/4.0)*std::pow(q,2));
+        derivative =  -1 * (3.0 * q) + (9.0/4.0)*std::pow(q,2);
     }
     else if(q <= 2)
     {
         ReturnValue = 0.25 * std::pow(2.0-q,3);
-        derivative = -0.75 * std::pow(2.0 - q, 2);
+        derivative = -0.75 * std::pow(2.0-q, 2);
     }
     else
     {
@@ -54,7 +56,7 @@ void KernalEvaulation(int a)
         double DerivativeValue = 0;
         double q = std::abs(RadiusDiff) / s_h;
         KernalFunction(q, s_h, ReturnValue, DerivativeValue);
-        if(ReturnValue != 0.0 )//|| DerivativeValue != 0.0)
+        //if(ReturnValue != 0.0 )//|| DerivativeValue != 0.0)
         {
             KernalEvaulations.push_back({ReturnValue, DerivativeValue});
             KernalIndex.push_back(b);
@@ -139,13 +141,14 @@ void EnergyEvaluation(int a)
 void InitialEnergyEvaluation(int a, double* ReturnValue)
 {
     auto TargetParticle = s_AllParticles[a];
-    double P = TargetParticle->GetP();
-    double Rho = TargetParticle->GetRho();
-    double U = P / Rho;
+    //double P = TargetParticle->GetP();
+    //double Rho = TargetParticle->GetRho();
+    //double U = P / Rho;
 
-    TargetParticle->UpdateKineticEnergy(0.0);
-    TargetParticle->TemporyInternalEnergyGradient = 0.0;
-    TargetParticle->UpdateThermalEnergy(U);
+    //TargetParticle->UpdateKineticEnergy(0.0);
+    //TargetParticle->TemporyInternalEnergyGradient = 0.0;
+    //TargetParticle->UpdateThermalEnergy(U);
+    auto[KE,U] = TargetParticle->GetRecentEnergy();
 
     *ReturnValue = U;
 }
@@ -186,8 +189,8 @@ void AccelerationEvaluation(int a)
         //TargetParticle->UpdateViscosity(0.0);
         //TargetParticle->VelocityApproach.push_back(0.0);
         if(Kernal[i].first == 0.0) {continue;}
-        //r = s_AllParticles[b]->GetX() - TargetParticle->GetX();
         r = TargetParticle->GetX() - s_AllParticles[b]->GetX();
+        //double r2 = s_AllParticles[b]->GetX() - TargetParticle->GetX();
         if(r == 0.0) {continue;}
         double Mass = s_AllParticles[b]->GetMass();
         double ValB = s_AllParticles[b]->GetCache().PressureOverDensitySquared;
@@ -195,14 +198,20 @@ void AccelerationEvaluation(int a)
         double ApprochVelocity = TargetParticle->GetV() - s_AllParticles[b]->GetV();
         //if(ValB == 0.0)
         {
-            ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
-            s_AllParticles[b]->GetCache().PressureOverDensitySquared = ValB;
+            //ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
+            //s_AllParticles[b]->GetCache().PressureOverDensitySquared = ValB;
         }
         double Viscosity = 0.0;
         ArtificialViscosity(r,ApprochVelocity,{a,b},Viscosity);
         //TargetParticle->UpdateViscosity(Viscosity,i);
         //TargetParticle->VelocityApproach[i] = ApprochVelocity;
         double GradKernal = Kernal[i].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
+        //auto Kernal2 = s_AllParticles[b]->GetKernal(); 
+        //double GradKernal2 = Kernal2[a].second * (r2 / std::abs(r2)) * (1 - DiracDelta(a,b));
+        //if(GradKernal != -1 * GradKernal2)
+        //{
+        //    std::cout << "GradKernal Error: " << GradKernal << " " << GradKernal2 << std::endl;
+        //}
         double AccAB = Mass * (ValA + ValB + Viscosity) * GradKernal;
         acceleration += AccAB;
 
@@ -241,9 +250,11 @@ void PressureEvaulation(int a)
     auto TargetParticle = s_AllParticles[a];
     double density = TargetParticle->GetRho();
     auto[KineticEnergy, ThermalEnergy] = TargetParticle->GetRecentEnergy();
-    double Pressure = density * ThermalEnergy;
+    double Pressure = 0.4 * density * ThermalEnergy;
     TargetParticle->UpdateP(Pressure);
-    double dPdrho = ThermalEnergy;
+    double PressureOverDensity = Pressure * (1 / std::pow(density,2));
+    TargetParticle->GetCache().PressureOverDensitySquared = PressureOverDensity;
+    double dPdrho = 0.4 * ThermalEnergy;
     TargetParticle->UpdatePrho(dPdrho);
     SpeedOfSound(a);
 }
@@ -264,7 +275,8 @@ void InitialConditions(int a)
 {
     KernalEvaulation(a);
     DensityEvauluation(a);
-    PolytropicPressureEvaluation(a);
+    //PolytropicPressureEvaluation(a);
+    PressureEvaulation(a);
     //AccelerationEvaluation(a);
 }
 
@@ -273,26 +285,15 @@ bool CheckSymmetry()
     for(int i = 0; i < s_AllParticles.size(); i++)
     {
         auto kernal = s_AllParticles[i]->GetKernal();
-        auto kernalindex = s_AllParticles[i]->GetCache().KernalResults;
-        for (int j = 0; j < kernalindex.size(); j++)
+        for (int j = 0; j < kernal.size(); j++)
         {
-            int index1 = kernalindex[j];
-            if (i == index1) {continue;}
-            auto kernalindex2 = s_AllParticles[index1]->GetCache().KernalResults;
-            int index2 = 0;
-            for (int e : kernalindex2)
+            if(i == j) {continue;}
+            auto kernal2 = s_AllParticles[j]->GetKernal(); 
+            if(kernal2[i].first != kernal[j].first)
             {
-                if(e == i)
-                    break;
-                else
-                    index2++;
-            }
-            auto kernal2 = s_AllParticles[index1]->GetKernal();
-            if(kernal[j].first != kernal2[index2].first)
-            {
+                std::cout << "Kernal Symmetry Error: " << i << " " << j << std::endl;
                 return false;
             }
-
         }
     }
     return true;
@@ -405,6 +406,7 @@ int main(int argc, char* argv[])
             double StepSize = ((Boundaries[Boundaries.size() - 1][0]) - (Boundaries[0][0])) / (ParticleDensity[i].first);
             s_AllParticles[j]->UpdateX(Boundaries[0][0] + (j - ParticleIndexOffset) * StepSize);
             s_AllParticles[j]->UpdateM(s_h * RegionData[i].InitialDensity/ (ParticleDensity[i].first*s_h/Regions[i].first));
+            s_AllParticles[j]->UpdateThermalEnergy(RegionData[i].InitialInternalEnergy/ParticleDensity[i].first);
             //std::cout << s_All
         }
         ParticleIndexOffset += ParticleDensity[i].first;
@@ -492,7 +494,7 @@ int main(int argc, char* argv[])
         ILG->Reset();
         for(int j = 0; j < s_AllParticles.size(); j++)
         {
-            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), true, false, false), j);
+            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), 1), j);
         }
         Pool.Resume();
         while(Pool.Busy()){};
@@ -502,7 +504,7 @@ int main(int argc, char* argv[])
         ILG->Reset();
         for(int j = 0; j < s_AllParticles.size(); j++)
         {
-            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), false, true, false), j);
+            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), 2), j);
         }
         Pool.Resume();
         while(Pool.Busy()){};
@@ -517,7 +519,7 @@ int main(int argc, char* argv[])
         ILG->Reset();
         for(int j = 0; j < s_AllParticles.size(); j++)
         {
-            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), false, false, false), j);
+            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), 3), j);
         }
         Pool.Resume();
         while(Pool.Busy()){};
@@ -527,7 +529,7 @@ int main(int argc, char* argv[])
         ILG->Reset();
         for (int j = 0; j < s_AllParticles.size(); j++)
         {
-            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), false, false, true), j);
+            Pool.QueueJob(std::bind(&VelocityVerlet::DoStep, Integrators[j].get(), 4), j);
             //Integrators[j]->ThermalEnergyEvaluation();
         }
         Pool.Resume();

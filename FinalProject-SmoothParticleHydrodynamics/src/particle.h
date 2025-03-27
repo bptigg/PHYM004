@@ -88,6 +88,9 @@ public:
     }
 
     std::tuple<double, double> GetRecentEnergy() {
+        if(m_KineticEnergy.size() == 0){
+            m_KineticEnergy.push_back(0.0);
+        }
         std::tuple<double, double> ReturnValues = {
             m_KineticEnergy.back(),
             m_ThermalEnergy.back()

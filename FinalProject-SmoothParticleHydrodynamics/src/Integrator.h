@@ -48,7 +48,7 @@ public:
         std::shared_ptr<FileOutput> Output;
     };
 public:
-    void DoStep(bool UpdatePositions = true, bool UpdatePressure = false, bool Energy = true);
+    void DoStep(int);
     //void ThermalEnergyEvaluation();
     
     VelocityVerlet(SetupData dat, std::shared_ptr<IntergatorLockGuard> ILG, std::vector<EvaluationFunction> Functions);
