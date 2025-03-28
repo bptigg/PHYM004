@@ -86,15 +86,16 @@ U = []
 P = []
 
 for i in range(0,len(ModifiedData[1][len(ModifiedData[1])-1])):
-    x.append(ModifiedData[1][len(ModifiedData[1])-1][i])
-    rho.append(ModifiedData[2][len(ModifiedData[2])-1][i])
-    velocity.append(ModifiedData[3][len(ModifiedData[2])-1][i])
-    U.append(ModifiedData[4][len(ModifiedData[2])-1][i])
-    P.append(ModifiedData[5][len(ModifiedData[2])-1][i])
-    #x.append(ModifiedData[1][0][i])
-    #rho.append(ModifiedData[2][0][i])
-    #velocity.append(ModifiedData[3][0][i])
-    #U.append(ModifiedData[4][0][i])
+    #x.append(ModifiedData[1][len(ModifiedData[1])-1][i])
+    #rho.append(ModifiedData[2][len(ModifiedData[2])-1][i])
+    #velocity.append(ModifiedData[3][len(ModifiedData[2])-1][i])
+    #U.append(ModifiedData[4][len(ModifiedData[2])-1][i])
+    #P.append(ModifiedData[5][len(ModifiedData[2])-1][i])
+    x.append(ModifiedData[1][0][i])
+    rho.append(ModifiedData[2][0][i])
+    velocity.append(ModifiedData[3][0][i])
+    U.append(ModifiedData[4][0][i])
+    P.append(ModifiedData[5][0][i])
 
 y = np.zeros(len(x))
 plt.scatter(x,y)

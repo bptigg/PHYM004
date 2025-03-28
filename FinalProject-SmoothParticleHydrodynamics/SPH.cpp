@@ -25,7 +25,7 @@ void KernalFunction(double q, double h, double& ReturnValue, double& derivative)
     if(q <= 1)
     {
         ReturnValue = 1 - (3.0/2.0 * std::pow(q,2)) + (3.0/4.0 * std::pow(q,3));
-        derivative =  -1 * (3.0 * q) + (9.0/4.0)*std::pow(q,2);
+        derivative =  (-3.0 * q) + (9.0/4.0)*std::pow(q,2);
     }
     else if(q <= 2)
     {
@@ -171,11 +171,12 @@ void AccelerationEvaluation(int a)
     auto Pressure = TargetParticle->GetP();
     auto Density = TargetParticle->GetRho();
     double ValA = TargetParticle->GetCache().PressureOverDensitySquared;
+    //auto MassA = TargetParticle->GetMass();
     //if(ValA == 0.0)
-    {
-        ValA = Pressure * (1 / std::pow(Density,2));
-        TargetParticle->GetCache().PressureOverDensitySquared = ValA;
-    }
+    //{
+    //    ValA = Pressure * (1 / std::pow(Density,2));
+    //    TargetParticle->GetCache().PressureOverDensitySquared = ValA;
+    //}
     double acceleration = 0.0;
     double Energy = 0.0;
     double r = 0.0;
@@ -188,24 +189,33 @@ void AccelerationEvaluation(int a)
         int b = ParticleIndex[i];
         //TargetParticle->UpdateViscosity(0.0);
         //TargetParticle->VelocityApproach.push_back(0.0);
-        if(Kernal[i].first == 0.0) {continue;}
+        if(Kernal[b].first == 0.0) {continue;}
         r = TargetParticle->GetX() - s_AllParticles[b]->GetX();
         //double r2 = s_AllParticles[b]->GetX() - TargetParticle->GetX();
         if(r == 0.0) {continue;}
+        double KernalVal, Deriv;
+        Deriv = Kernal[b].second;
+        //KernalFunction(std::abs(r) / s_h, s_h, KernalVal, Deriv);
+        //if(KernalVal != Kernal[b].first)
+        //{
+        //    std::cin.get();
+        //}
+        //if(KernalVal == 0) {continue;}
         double Mass = s_AllParticles[b]->GetMass();
         double ValB = s_AllParticles[b]->GetCache().PressureOverDensitySquared;
         //double ApprochVelocity = s_AllParticles[b]->GetV() - TargetParticle->GetV();
         double ApprochVelocity = TargetParticle->GetV() - s_AllParticles[b]->GetV();
         //if(ValB == 0.0)
-        {
+        //{
             //ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
             //s_AllParticles[b]->GetCache().PressureOverDensitySquared = ValB;
-        }
+        //}
         double Viscosity = 0.0;
         ArtificialViscosity(r,ApprochVelocity,{a,b},Viscosity);
         //TargetParticle->UpdateViscosity(Viscosity,i);
         //TargetParticle->VelocityApproach[i] = ApprochVelocity;
-        double GradKernal = Kernal[i].second * (r / std::abs(r)) * (1 - DiracDelta(a,b));
+        //double GradKernal = Kernal[b].second * (r/std::abs(r)) * (1 - DiracDelta(a,b));
+        double GradKernal = Deriv * (r/std::abs(r)) * (1 - DiracDelta(a,b));
         //auto Kernal2 = s_AllParticles[b]->GetKernal(); 
         //double GradKernal2 = Kernal2[a].second * (r2 / std::abs(r2)) * (1 - DiracDelta(a,b));
         //if(GradKernal != -1 * GradKernal2)
@@ -406,7 +416,10 @@ int main(int argc, char* argv[])
             double StepSize = ((Boundaries[Boundaries.size() - 1][0]) - (Boundaries[0][0])) / (ParticleDensity[i].first);
             s_AllParticles[j]->UpdateX(Boundaries[0][0] + (j - ParticleIndexOffset) * StepSize);
             s_AllParticles[j]->UpdateM(s_h * RegionData[i].InitialDensity/ (ParticleDensity[i].first*s_h/Regions[i].first));
-            s_AllParticles[j]->UpdateThermalEnergy(RegionData[i].InitialInternalEnergy/ParticleDensity[i].first);
+            //s_AllParticles[j]->UpdateM(2.0/ParticleCount);
+            s_AllParticles[j]->UpdateV(0.0);
+            s_AllParticles[j]->UpdateRho(RegionData[i].InitialDensity);
+            s_AllParticles[j]->UpdateThermalEnergy(RegionData[i].InitialInternalEnergy);
             //std::cout << s_All
         }
         ParticleIndexOffset += ParticleDensity[i].first;
