@@ -10,7 +10,7 @@ void VelocityVerlet::DoStep(int step)
         auto[KE,U] = m_Particle->GetRecentEnergy();
         //half timestep v = initial v + 1/2 * timestep * inital a
         double HalfV = Velocity + 0.5 * m_Timestep * Accerleration;
-        double HalfU = U + 0.5 * m_Timestep * m_Particle->TemporyInternalEnergyGradient * m_Particle->GetMass();
+        double HalfU = U + 0.5 * m_Timestep * m_Particle->TemporyInternalEnergyGradient;// * m_Particle->GetMass();
         //double HalfKE = KE + 0.5 * m_Timestep * m_Particle->TemporyKineticEnergyGradient;
         //new position = inital r + timestep * half timestep v
         double NewX = Position + m_Timestep * HalfV;
@@ -53,7 +53,8 @@ void VelocityVerlet::DoStep(int step)
     //m_ThermalEvaluation(m_ParticleID);
     auto[KE1,U1] = m_Particle->GetRecentEnergy();
     double NewV = m_Particle->GetV() + 0.5 * m_Timestep * m_Particle->GetA();
-    double NewEnergy = U1 + 0.5 * m_Timestep * m_Particle->TemporyInternalEnergyGradient * m_Particle->GetMass();
+    double NewEnergy = U1 + 0.5 * m_Timestep * m_Particle->TemporyInternalEnergyGradient;// * m_Particle->GetMass();
+    //m_KineticEvaluation(m_ParticleID);
     m_Particle->UpdateV(NewV);
     m_Particle->UpdateThermalEnergy(NewEnergy);
     m_KineticEvaluation(m_ParticleID);

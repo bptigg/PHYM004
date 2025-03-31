@@ -92,8 +92,8 @@ public:
             m_KineticEnergy.push_back(0.0);
         }
         std::tuple<double, double> ReturnValues = {
-            m_KineticEnergy.back(),
-            m_ThermalEnergy.back()
+            m_KineticEnergy[m_KineticEnergy.size() - 1],
+            m_ThermalEnergy[m_ThermalEnergy.size() - 1]
         };
         return ReturnValues;
     }

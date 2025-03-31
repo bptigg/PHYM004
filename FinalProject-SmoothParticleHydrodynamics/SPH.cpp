@@ -56,7 +56,7 @@ void KernalEvaulation(int a)
         double DerivativeValue = 0;
         double q = std::abs(RadiusDiff) / s_h;
         KernalFunction(q, s_h, ReturnValue, DerivativeValue);
-        //if(ReturnValue != 0.0 )//|| DerivativeValue != 0.0)
+        if(ReturnValue != 0.0 )//|| DerivativeValue != 0.0)
         {
             KernalEvaulations.push_back({ReturnValue, DerivativeValue});
             KernalIndex.push_back(b);
@@ -97,11 +97,11 @@ void ArtificialViscosity(double r, double v, std::pair<int,int> Particles, doubl
     mu = (s_h * approach) / (std::pow(r,2) + (epsilon*std::pow(s_h,2)));
     viscosity = (-1 * alpha * AvgSpeedOfSound * mu) + (beta * std::pow(mu,2));
     viscosity = viscosity / AvgDensity;
-    viscosity = 0.0;
+    //viscosity = 0.0;
     return;
 }
 
-void EnergyEvaluation(int a)
+void EnergyEvaluation(int a) //depreciated function, energy evaluation is now done in the acceleration evaluation
 {
     //In 1D
     //Pressure/Density * sum(mass of b * (velocity of a - velocity of b) * (kernal vector / magnitude of kernal)
@@ -141,14 +141,14 @@ void EnergyEvaluation(int a)
 void InitialEnergyEvaluation(int a, double* ReturnValue)
 {
     auto TargetParticle = s_AllParticles[a];
-    //double P = TargetParticle->GetP();
-    //double Rho = TargetParticle->GetRho();
-    //double U = P / Rho;
+    double P = TargetParticle->GetP();
+    double Rho = TargetParticle->GetRho();
+    double U = P / Rho;
 
-    //TargetParticle->UpdateKineticEnergy(0.0);
-    //TargetParticle->TemporyInternalEnergyGradient = 0.0;
-    //TargetParticle->UpdateThermalEnergy(U);
-    auto[KE,U] = TargetParticle->GetRecentEnergy();
+    TargetParticle->UpdateKineticEnergy(0.0);
+    TargetParticle->TemporyInternalEnergyGradient = 0.0;
+    TargetParticle->UpdateThermalEnergy(U);
+    //auto[KE,U] = TargetParticle->GetRecentEnergy();
 
     *ReturnValue = U;
 }
@@ -171,57 +171,24 @@ void AccelerationEvaluation(int a)
     auto Pressure = TargetParticle->GetP();
     auto Density = TargetParticle->GetRho();
     double ValA = TargetParticle->GetCache().PressureOverDensitySquared;
-    //auto MassA = TargetParticle->GetMass();
-    //if(ValA == 0.0)
-    //{
-    //    ValA = Pressure * (1 / std::pow(Density,2));
-    //    TargetParticle->GetCache().PressureOverDensitySquared = ValA;
-    //}
     double acceleration = 0.0;
     double Energy = 0.0;
     double r = 0.0;
     auto ParticleIndex = TargetParticle->GetCache().KernalResults;
-    //TargetParticle->ClearViscosity();
-    //TargetParticle->VelocityApproach.clear();
-    //for(int b = 0; b < s_AllParticles.size(); b++)
     for(int i = 0; i < ParticleIndex.size(); i++)
     {
         int b = ParticleIndex[i];
-        //TargetParticle->UpdateViscosity(0.0);
-        //TargetParticle->VelocityApproach.push_back(0.0);
-        if(Kernal[b].first == 0.0) {continue;}
+        if(Kernal[i].first == 0.0) {continue;}
         r = TargetParticle->GetX() - s_AllParticles[b]->GetX();
-        //double r2 = s_AllParticles[b]->GetX() - TargetParticle->GetX();
         if(r == 0.0) {continue;}
         double KernalVal, Deriv;
-        Deriv = Kernal[b].second;
-        //KernalFunction(std::abs(r) / s_h, s_h, KernalVal, Deriv);
-        //if(KernalVal != Kernal[b].first)
-        //{
-        //    std::cin.get();
-        //}
-        //if(KernalVal == 0) {continue;}
+        Deriv = Kernal[i].second;
         double Mass = s_AllParticles[b]->GetMass();
         double ValB = s_AllParticles[b]->GetCache().PressureOverDensitySquared;
-        //double ApprochVelocity = s_AllParticles[b]->GetV() - TargetParticle->GetV();
         double ApprochVelocity = TargetParticle->GetV() - s_AllParticles[b]->GetV();
-        //if(ValB == 0.0)
-        //{
-            //ValB = s_AllParticles[b]->GetP() * (1 / std::pow(s_AllParticles[b]->GetRho(),2));
-            //s_AllParticles[b]->GetCache().PressureOverDensitySquared = ValB;
-        //}
         double Viscosity = 0.0;
         ArtificialViscosity(r,ApprochVelocity,{a,b},Viscosity);
-        //TargetParticle->UpdateViscosity(Viscosity,i);
-        //TargetParticle->VelocityApproach[i] = ApprochVelocity;
-        //double GradKernal = Kernal[b].second * (r/std::abs(r)) * (1 - DiracDelta(a,b));
         double GradKernal = Deriv * (r/std::abs(r)) * (1 - DiracDelta(a,b));
-        //auto Kernal2 = s_AllParticles[b]->GetKernal(); 
-        //double GradKernal2 = Kernal2[a].second * (r2 / std::abs(r2)) * (1 - DiracDelta(a,b));
-        //if(GradKernal != -1 * GradKernal2)
-        //{
-        //    std::cout << "GradKernal Error: " << GradKernal << " " << GradKernal2 << std::endl;
-        //}
         double AccAB = Mass * (ValA + ValB + Viscosity) * GradKernal;
         acceleration += AccAB;
 
@@ -260,7 +227,7 @@ void PressureEvaulation(int a)
     auto TargetParticle = s_AllParticles[a];
     double density = TargetParticle->GetRho();
     auto[KineticEnergy, ThermalEnergy] = TargetParticle->GetRecentEnergy();
-    double Pressure = 0.4 * density * ThermalEnergy;
+    double Pressure = 1 * density * ThermalEnergy;
     TargetParticle->UpdateP(Pressure);
     double PressureOverDensity = Pressure * (1 / std::pow(density,2));
     TargetParticle->GetCache().PressureOverDensitySquared = PressureOverDensity;
@@ -278,6 +245,8 @@ void PolytropicPressureEvaluation(int a)
     TargetParticle->UpdateP(Pressure);
     double dPdrho = s_K * s_Gamma * std::pow(density,s_Gamma-1);
     TargetParticle->UpdatePrho(dPdrho);
+    double PressureOverDensity = Pressure * (1 / std::pow(density,2));
+    TargetParticle->GetCache().PressureOverDensitySquared = PressureOverDensity;
     SpeedOfSound(a);
 }
 
@@ -285,8 +254,8 @@ void InitialConditions(int a)
 {
     KernalEvaulation(a);
     DensityEvauluation(a);
-    //PolytropicPressureEvaluation(a);
-    PressureEvaulation(a);
+    PolytropicPressureEvaluation(a);
+    //PressureEvaulation(a);
     //AccelerationEvaluation(a);
 }
 
@@ -344,7 +313,7 @@ int main(int argc, char* argv[])
 
     auto PhysicalBoundaries = SetupData.PhysicalBoundaries;
     std::sort(PhysicalBoundaries.begin(), PhysicalBoundaries.end(), [](std::array<double,3> a, std::array<double,3> b) {return a[0] < b[0];});
-    unsigned int SystemSize = PhysicalBoundaries[PhysicalBoundaries.size() - 1][0] - PhysicalBoundaries[0][0];
+    double SystemSize = PhysicalBoundaries[PhysicalBoundaries.size() - 1][0] - PhysicalBoundaries[0][0];
     std::vector<double> RegionSizes = {};
     for(auto R : RegionData)
     {
@@ -415,11 +384,12 @@ int main(int argc, char* argv[])
         {
             double StepSize = ((Boundaries[Boundaries.size() - 1][0]) - (Boundaries[0][0])) / (ParticleDensity[i].first);
             s_AllParticles[j]->UpdateX(Boundaries[0][0] + (j - ParticleIndexOffset) * StepSize);
-            s_AllParticles[j]->UpdateM(s_h * RegionData[i].InitialDensity/ (ParticleDensity[i].first*s_h/Regions[i].first));
-            //s_AllParticles[j]->UpdateM(2.0/ParticleCount);
-            s_AllParticles[j]->UpdateV(0.0);
-            s_AllParticles[j]->UpdateRho(RegionData[i].InitialDensity);
-            s_AllParticles[j]->UpdateThermalEnergy(RegionData[i].InitialInternalEnergy);
+            //s_AllParticles[j]->UpdateM(s_h * RegionData[i].InitialDensity/ (ParticleDensity[i].first*s_h/Regions[i].first));
+            //s_AllParticles[j]->UpdateM(SystemSize/ParticleCount);
+            s_AllParticles[j]->UpdateM(1.0);
+            //s_AllParticles[j]->UpdateV(0.0);
+            //s_AllParticles[j]->UpdateRho(RegionData[i].InitialDensity);
+            //s_AllParticles[j]->UpdateThermalEnergy(RegionData[i].InitialInternalEnergy);
             //std::cout << s_All
         }
         ParticleIndexOffset += ParticleDensity[i].first;
